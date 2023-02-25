@@ -1,7 +1,7 @@
 /****************************************************************************
 ** $Id: palmyrafm/dirview.h   1.0   edited Jan 4 00:25 $
 **
-** Copyright (C) 2005 Artem Nahorny.	All rights reserved.
+** Copyright (C) 2005 Artem Nahorny.    All rights reserved.
 **
 ** This file is part of the Palmyra File Manager.  This program
 ** may be used and distributed under the GPL v.2.
@@ -46,7 +46,7 @@ class FileItem : public QListViewItem
 {
 public:
     FileItem( QListViewItem *parent, const QString &s1, const QString &s2 )
-	: QListViewItem( parent, s1, s2 ), pix( 0 ) {}
+    : QListViewItem( parent, s1, s2 ), pix( 0 ) {}
 
     const QPixmap *pixmap( int i ) const;
 #if !defined(Q_NO_USING_KEYWORD)
@@ -70,7 +70,7 @@ class Directory : public QListViewItem
 public:
     Directory( QListView * parent, const QString& filename );
     Directory( Directory * parent, const QString& filename, const QString &col2 )
-	: QListViewItem( parent, filename, col2 ), pix( 0 ) {}
+    : QListViewItem( parent, filename, col2 ), pix( 0 ) {}
     Directory( Directory * parent, const QString& filename );
 
     QString text( int column ) const;
