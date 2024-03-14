@@ -1,58 +1,59 @@
 /****************************************************************************
-** $Id: palmyrafm/palmyrafm.cpp   1.0   edited Jan 4 00:25 $
+** Copyright (C) 2005 Artem Nagornyi. All rights reserved
 **
-** Copyright (C) 2005 Artem Nahorny.    All rights reserved.
-**
-** This file is part of the Palmyra File Manager.  This program
-** may be used and distributed under the GPL v.2.
-**
+** This file is part of Palmyra File Manager. This program
+** may be used and distributed under the GPL v2
 *****************************************************************************/
-
-/****************************************************************************
-** Курсова робота
-** студента групи П-01-51 ІП "Стратегія"
-** Нагорного Артема
-** з дисципліни "Основи Об"єктно Орієнтованого Програмування"
-** 
-** Тема:
-** Створення файлового менеджера під ОС Linux
-*****************************************************************************/
-
-// включення заголовочних файлів
 
 #include "palmyrafm.h"
 #include "dirview.h"
 
-#include <qsplitter.h>
-#include <qprogressbar.h>
-#include <qlabel.h>
-#include <qstatusbar.h>
-#include <qtoolbar.h>
-#include <qcombobox.h>
-#include <qtoolbutton.h>
-#include <qdir.h>
-#include <qfileinfo.h>
-#include <qfile.h>
-#include <qstring.h>
-#include <qtextstream.h>
-#include <qpainter.h>
-#include <qstringlist.h>
-#include <qpixmap.h>
-#include <qmime.h>
-#include <qstrlist.h>
-#include <qdragobject.h>
-#include <qmessagebox.h>
-#include <qevent.h>
-#include <qpopupmenu.h>
-#include <qcursor.h>
-#include <qapplication.h>
-#include <qwmatrix.h>
-#include <qprocess.h>
-#include <qobject.h>
-#include <qvbox.h>
-#include <stdlib.h>
-
-// створення різноманітних значків для програми
+#include <QSplitter>
+#include <QProgressBar>
+#include <QLabel>
+#include <QStatusBar>
+#include <QToolBar>
+#include <QComboBox>
+#include <QToolButton>
+#include <QDir>
+#include <QFileInfo>
+#include <QFile>
+#include <QString>
+#include <QTextStream>
+#include <QPainter>
+#include <QStringList>
+#include <QPixmap>
+#include <QMimeDatabase>
+#include <QList>
+#include <QDrag>
+#include <QMessageBox>
+#include <QEvent>
+#include <QMenu>
+#include <QCursor>
+#include <QApplication>
+#include <QMatrix4x4>
+#include <QProcess>
+#include <QObject>
+#include <QVBoxLayout>
+#include <cstdlib>
+#include <QIcon>
+#include <QIconView>
+#include <QPixmap>
+#include <QFileIconProvider>
+#include <QFileInfo>
+#include <QDir>
+#include <QFile>
+#include <QTextStream>
+#include <QMessageBox>
+#include <QApplication>
+#include <QProcess>
+#include <QDirModel>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QList>
+#include <QListWidget>
+#include <QListWidgetItem>
 
 static const char* remove_xpm[]={
     "15 13 3 1",

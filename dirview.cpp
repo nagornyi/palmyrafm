@@ -1,38 +1,40 @@
 /****************************************************************************
-** $Id: palmyrafm/dirview.cpp   1.0   edited Jan 4 00:25 $
+** Copyright (C) 2005 Artem Nagornyi. All rights reserved
 **
-** Copyright (C) 2005 Artem Nahorny.    All rights reserved.
-**
-** This file is part of the Palmyra File Manager.  This program
-** may be used and distributed under the GPL v.2.
-**
-*****************************************************************************/
-
-/****************************************************************************
-** Курсова робота
-** студента групи П-01-51 ІП "Стратегія"
-** Нагорного Артема
-** з дисципліни "Основи Об"єктно Орієнтованого Програмування"
-** 
-** Тема:
-** Створення файлового менеджера під ОС Linux
+** This file is part of Palmyra File Manager. This program
+** may be used and distributed under the GPL v2
 *****************************************************************************/
 
 #include "dirview.h"
 
-#include <qdir.h>
-#include <qfile.h>
-#include <qfileinfo.h>
-#include <qpixmap.h>
-#include <qevent.h>
-#include <qpoint.h>
-#include <qmessagebox.h>
-#include <qdragobject.h>
-#include <qmime.h>
-#include <qstrlist.h>
-#include <qstringlist.h>
-#include <qapplication.h>
-#include <qheader.h>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QPixmap>
+#include <QEvent>
+#include <QPoint>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QStringList>
+#include <QApplication>
+#include <QHeaderView>
+#include <QTimer>
+#include <QMouseEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDragLeaveEvent>
+#include <QDropEvent>
+#include <QListViewItemIterator>
+#include <QListViewItem>
+#include <QFileInfoList>
+#include <QFileInfoListIterator>
+#include <QFileInfo>
+#include <QDir>
+#include <QMessageBox>
+#include <QUriDrag>
+#include <QUrl>
+#include <QVariant>
+#include <QVBoxLayout>
 
 static const char* folder_closed_xpm[]={
     "16 16 9 1",

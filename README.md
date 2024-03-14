@@ -1,2 +1,2 @@
-# palmyrafm
-Classic dual-pane file manager for Linux that uses QT library.
+# About
+Palmyra File Manager (palmyrafm) is a classic dual-pane file manager for Linux.
