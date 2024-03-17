@@ -8,6 +8,7 @@
 #ifndef DIRVIEW_H
 #define DIRVIEW_H
 
+#include <QApplication>
 #include <QListView>
 #include <QString>
 #include <QFile>
@@ -15,7 +16,8 @@
 #include <QTimer>
 #include <QPoint>
 #include <QPixmap>
-#include <QListViewItem>
+#include <QStandardItemModel>
+#include <QStandardItem>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDragLeaveEvent>
@@ -36,17 +38,17 @@ class QMouseEvent;
  *****************************************************************************/
 
 // Declaration of class FileItem and its methods, variables, and constants
-class FileItem : public QListViewItem
+class FileItem : public QStandardItem
 {
 public:
-  FileItem(QListViewItem *parent, const QString &s1, const QString &s2)
-    : QListViewItem(parent, s1, s2), pix(0) {}
+    FileItem(QStandardItem *parent, const QString &s1, const QString &s2)
+        : QStandardItem(s1 + " " + s2), pix(nullptr) {}
 
-  const QPixmap *pixmap(int i) const;
-  void setPixmap(QPixmap *p);
+    const QPixmap *pixmap() const { return pix; }
+    void setPixmap(QPixmap *p) { pix = p; }
 
 private:
-  QPixmap *pix;
+    QPixmap *pix;
 };
 
 /*****************************************************************************
@@ -56,30 +58,21 @@ private:
  *****************************************************************************/
 
 // Declaration of class Directory and its methods, variables, and constants
-class Directory : public QListViewItem
+class Directory : public QStandardItem
 {
 public:
-  Directory(QListView *parent, const QString &filename);
-  Directory(Directory *parent, const QString &filename, const QString &col2)
-    : QListViewItem(parent, filename, col2), pix(0) {}
-  Directory(Directory *parent, const QString &filename);
+    Directory(QStandardItem *parent, const QString &filename)
+        : QStandardItem(filename), pix(nullptr) {}
 
-  QString text(int column) const;
+    QString text() const { return QStandardItem::text(); }
 
-  QString fullName();
+    QString fullName() const { return text(); }
 
-  void setOpen(bool);
-  void setup();
-
-  const QPixmap *pixmap(int i) const;
-  void setPixmap(QPixmap *p);
+    const QPixmap *pixmap() const { return pix; }
+    void setPixmap(QPixmap *p) { pix = p; }
 
 private:
-  QFile f;
-  Directory *p;
-  bool readable;
-  bool showDirsOnly;
-  QPixmap *pix;
+    QPixmap *pix;
 };
 
 /*****************************************************************************
@@ -91,39 +84,39 @@ private:
 // Declaration of class DirectoryView and its methods, variables, and constants
 class DirectoryView : public QListView
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  DirectoryView(QWidget *parent = nullptr, const char *name = nullptr, bool sdo = false);
-  bool showDirsOnly() { return dirsOnly; }
+    DirectoryView(QWidget *parent = nullptr, const char *name = nullptr, bool sdo = false);
+    bool showDirsOnly() { return dirsOnly; }
 
 public slots:
-  void setDir(const QString &);
+    void setDir(const QString &);
 
 signals:
-  void folderSelected(const QString &);
+    void folderSelected(const QString &);
 
 protected slots:
-  void slotFolderSelected(QListViewItem *);
-  void openFolder();
+    void slotFolderSelected(QStandardItem *);
+    void openFolder();
 
 protected:
-  void contentsDragEnterEvent(QDragEnterEvent *e);
-  void contentsDragMoveEvent(QDragMoveEvent *e);
-  void contentsDragLeaveEvent(QDragLeaveEvent *e);
-  void contentsDropEvent(QDropEvent *e);
-  void contentsMouseMoveEvent(QMouseEvent *e);
-  void contentsMousePressEvent(QMouseEvent *e);
-  void contentsMouseReleaseEvent(QMouseEvent *e);
+    void contentsDragEnterEvent(QDragEnterEvent *e);
+    void contentsDragMoveEvent(QDragMoveEvent *e);
+    void contentsDragLeaveEvent(QDragLeaveEvent *e);
+    void contentsDropEvent(QDropEvent *e);
+    void contentsMouseMoveEvent(QMouseEvent *e);
+    void contentsMousePressEvent(QMouseEvent *e);
+    void contentsMouseReleaseEvent(QMouseEvent *e);
 
 private:
-  QString fullPath(QListViewItem *item);
-  bool dirsOnly;
-  QListViewItem *oldCurrent;
-  QListViewItem *dropItem;
-  QTimer *autoopen_timer;
-  QPoint presspos;
-  bool mousePressed;
+    QString fullPath(QStandardItem *item);
+    bool dirsOnly;
+    QStandardItem *oldCurrent;
+    QStandardItem *dropItem;
+    QTimer *autoopen_timer;
+    QPoint presspos;
+    bool mousePressed;
 };
 
 #endif
