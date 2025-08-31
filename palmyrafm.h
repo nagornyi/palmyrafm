@@ -1,57 +1,44 @@
 /****************************************************************************
-** $Id: palmyrafm/palmyrafm.h   1.0   edited Jan 4 00:25 $
-**
-** Copyright (C) 2005 Artem Nahorny.    All rights reserved.
-**
-** This file is part of the Palmyra File Manager.  This program
-** may be used and distributed under the GPL v.2.
-**
-*****************************************************************************/
-
-/****************************************************************************
-** Курсова робота
-** студента групи П-01-51 ІП "Стратегія"
-** Нагорного Артема
-** з дисципліни "Основи Об"єктно Орієнтованого Програмування"
-** 
-** Тема:
-** Створення файлового менеджера під ОС Linux
+** palmyrafm.h
 *****************************************************************************/
 
 #ifndef PALMYRAFM_H
 #define PALMYRAFM_H
 
-// включення стандартних бібліотек
-#include <qmainwindow.h>
-#include <qiconset.h>
-#include <qstring.h>
-#include <qfileinfo.h>
-#include <qdir.h>
-#include <qtimer.h>
-#include <qiconview.h>
-#include <qprocess.h>
-#include <qobject.h>
-#include <qvbox.h>
+#include <QMainWindow>
+#include <QListView>
+#include <QTreeView>
+#include <QWidget>
+#include <QDrag>
+#include <QStandardItem>
+#include <QFileSystemModel>
+#include <QProgressBar>
+#include <QLabel>
+#include <QComboBox>
+#include <QToolButton>
+#include <QTimer>
+#include <QProcess>
+#include <QMimeData>
+#include <QDir>
+#include <QFileInfo>
+#include <QProgressDialog>
+#include <QClipboard>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QSizePolicy>
+#include <QKeyEvent>
 
-// оголошення класів програми
+// Forward declarations
 class QtFileIconView;
 class DirectoryView;
-class QProgressBar;
-class QLabel;
-class QComboBox;
-class QToolButton;
-class QtFileIconView;
-class QDragObject;
-class QResizeEvent;
 class Copier;
 
 /*****************************************************************************
  *
- * Class FileMainWindow and its methods declaration
+ * FileMainWindow - Main application window
  *
  *****************************************************************************/
 
-// оголошення класу FileMainWindow та його методів, змінних і констант
 class FileMainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -65,6 +52,7 @@ public:
 protected:
     void setup();
     void setPathCombo();
+    virtual void keyPressEvent(QKeyEvent *event) override;
     QtFileIconView *fileview;
     DirectoryView *dirlist;
     QProgressBar *progress;
@@ -78,6 +66,7 @@ protected slots:
     void slotReadNextDir();
     void slotReadDirDone();
     void cdUp();
+    void goHome();
     void newFolder();
     void cut();
     void copy();
@@ -88,20 +77,26 @@ protected slots:
     void updateonce();
     void about();
     void changePath( const QString &path );
+    void pathEditFinished();
     void enableUp();
     void disableUp();
     void enableMkdir();
     void disableMkdir();
+
+private:
+    QStringList copiedFiles;
+    bool isCutOperation;
+    
+    bool copyDirectoryRecursively(const QString &sourceDir, const QString &targetDir, bool moveOperation = false);
 };
 
 /*****************************************************************************
  *
- * Class Copier and its methods declaration
+ * Copier - Helper class for file operations
  *
  *****************************************************************************/
 
-// оголошення класу Copier та його методів, змінних і констант
-class Copier : public QVBox
+class Copier : public QWidget
 {
     Q_OBJECT
 
@@ -110,7 +105,7 @@ public:
     ~Copier() 
     {
         delete proc;
-    };
+    }
     void copy();
 
 private:
@@ -119,21 +114,18 @@ private:
 
 /*****************************************************************************
  *
- * Class QtFileIconDrag and its methods declaration
+ * QtFileIconDrag - drag and drop
  *
  *****************************************************************************/
 
-// оголошення класу QtFileIconDrag та його методів, змінних і констант
-class QtFileIconDrag : public QIconDrag
+class QtFileIconDrag : public QDrag
 {
     Q_OBJECT
 
 public:
-    QtFileIconDrag( QWidget * dragSource, const char* name = 0 );
-    const char* format( int i ) const;
-    QByteArray encodedData( const char* mime ) const;
-    static bool canDecode( QMimeSource* e );
-    void append( const QIconDragItem &item, const QRect &pr, const QRect &tr, const QString &url );
+    QtFileIconDrag( QWidget * dragSource, QObject* parent = nullptr );
+    static bool canDecode( const QMimeData* e );
+    void setUrls( const QStringList &urls );
 
 private:
     QStringList urls;
@@ -141,33 +133,21 @@ private:
 
 /*****************************************************************************
  *
- * Class QtFileIconView and its methods declaration
+ * QtFileIconView - File list view using QListView
  *
  *****************************************************************************/
 
-// оголошення класу QtFileIconView та його методів, змінних і констант
-class QtFileIconViewItem;
-class QTimer;
-class QtFileIconView : public QIconView
+class QtFileIconView : public QListView
 {
     Q_OBJECT
 
-friend class Copier;
-
 public:
-    QtFileIconView( const QString &dir, QWidget *parent = 0, const char *name = 0 );
+    QtFileIconView( const QString &dir, QWidget *parent = nullptr );
     enum ViewMode { Large, Detail };
     void setViewMode( ViewMode m );
-    ViewMode viewMode() const 
-    { 
-        return vm; 
-    }
-    void setOpenItem( QtFileIconViewItem *i ) 
-    {
-        openItem = i;
-    }
-    void copy1(QString cpdir);
-    
+    ViewMode viewMode() const { return vm; }
+    QDir currentDir();
+    void itemDoubleClicked( const QModelIndex &index );
 
 public slots:
     void setDirectory( const QString &dir );
@@ -177,17 +157,12 @@ public slots:
     void copy_prev();
     void rename_prev();
     void remove_prev();
-    void update();
     void updateonce();
-    void cut_fin( QIconViewItem *item );
-    void copy_fin( QIconViewItem *item );
-    void rename_fin( QIconViewItem *item );
-    void remove_fin( QIconViewItem *item );
+    void cut_fin( QModelIndex item );
+    void copy_fin( QModelIndex item );
+    void rename_fin( QModelIndex item );
+    void remove_fin( QModelIndex item );
     void paste();
-    QDir currentDir();
-
-private slots:
-    void regupdate ();
 
 signals:
     void directoryChanged( const QString & );
@@ -200,8 +175,7 @@ signals:
     void disableMkdir();
 
 protected slots:
-    void itemDoubleClicked( QIconViewItem *i );
-    void slotDropped( QDropEvent *e, const QValueList<QIconDragItem> & );
+    void slotDropped( QDropEvent *e );
     void viewLarge();
     void viewDetail();
     void viewBottom();
@@ -212,78 +186,52 @@ protected slots:
     void itemTextWordWrap();
     void sortAscending();
     void sortDescending(); 
-    void arrangeItemsInGrid() 
-    {
-        QIconView::arrangeItemsInGrid( TRUE );
-    }
-
-    void slotRightPressed( QIconViewItem *item );
+    void arrangeItemsInGrid();
+    void slotRightPressed( const QModelIndex &index );
     void openFolder();
-    
+    void regupdate();
 
 protected:
-    void readDir( const QDir &dir );
-    virtual QDragObject *dragObject();
+    virtual QDrag *dragObject();
     virtual void keyPressEvent( QKeyEvent *e );
+    
+    QFileSystemModel *fileModel;
     QDir viewDir;
     int newFolderNum;
-    QSize sz;
-    QPixmap pix;
     ViewMode vm;
-    QtFileIconViewItem *openItem; 
+    void *openItem; // placeholder
 
 private:
     QProcess *proc1;
     QTimer *internalTimer;
-    
 };
 
 /*****************************************************************************
  *
- * Class QtFileIconViewItem and its methods declaration
+ * DirectoryView - directory tree view
  *
  *****************************************************************************/
 
-// оголошення класу QtFileIconViewItem та його методів, змінних і констант
-class QtFileIconViewItem : public QIconViewItem, public Copier
+class DirectoryView : public QTreeView
 {
-
-friend class QtFileIconView;
-friend class FileMainWindow;
-friend class Copier;
+    Q_OBJECT
 
 public:
-    enum ItemType 
-    {
-        File = 0,
-        Dir,
-        Link
-    };
+    DirectoryView( QWidget *parent = nullptr, bool sdo = false );
+    bool showDirsOnly() { return dirsOnly; }
 
-    QtFileIconViewItem( QtFileIconView *parent, QFileInfo *fi );
-    virtual ~QtFileIconViewItem();
-    ItemType type() const
-    { 
-        return itemType; 
-    }
-    QString filename() const { return itemFileName; }
-    virtual bool acceptDrop( const QMimeSource *e ) const;
-    virtual void setText( const QString &text );
-    virtual QPixmap *pixmap() const;
-    virtual void dragEntered();
-    virtual void dragLeft();
-    void viewModeChanged( QtFileIconView::ViewMode m );
-    void paintItem( QPainter *p, const QColorGroup &cg );
+public slots:
+    void setDir( const QString & );
 
-protected:
-    virtual void dropped( QDropEvent *e, const QValueList<QIconDragItem> & );
-    QString itemFileName;
-    QFileInfo *itemFileInfo;
-    ItemType itemType;
-    bool checkSetText;
-    QTimer timer;
-    QtFileIconView::ViewMode vm;
+signals:
+    void folderSelected( const QString & );
+
+protected slots:
+    void slotFolderSelected( const QModelIndex &index );
+
+private:
+    bool dirsOnly;
+    QFileSystemModel *model;
 };
 
-
-#endif
+#endif // PALMYRAFM_H
