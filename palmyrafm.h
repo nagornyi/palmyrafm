@@ -26,6 +26,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QSizePolicy>
+#include <QKeyEvent>
 
 // Forward declarations
 class QtFileIconView;
@@ -51,6 +52,7 @@ public:
 protected:
     void setup();
     void setPathCombo();
+    virtual void keyPressEvent(QKeyEvent *event) override;
     QtFileIconView *fileview;
     DirectoryView *dirlist;
     QProgressBar *progress;
@@ -145,6 +147,7 @@ public:
     void setViewMode( ViewMode m );
     ViewMode viewMode() const { return vm; }
     QDir currentDir();
+    void itemDoubleClicked( const QModelIndex &index );
 
 public slots:
     void setDirectory( const QString &dir );
@@ -172,7 +175,6 @@ signals:
     void disableMkdir();
 
 protected slots:
-    void itemDoubleClicked( const QModelIndex &index );
     void slotDropped( QDropEvent *e );
     void viewLarge();
     void viewDetail();

@@ -72,30 +72,44 @@ void FileMainWindow::setup()
     // Create file list view (right panel) 
     fileview = new QtFileIconView("/", splitter);
     fileview->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    fileview->setFocus(); // Set initial focus to file view
     
     setCentralWidget(splitter);
     
     // Create toolbar
     QToolBar *toolbar1 = addToolBar("Operations");
     
-    // Up button
-    upButton = new QToolButton();
-    upButton->setText("Up");
-    upButton->setToolTip("Go Up");
-    connect(upButton, &QToolButton::clicked, this, &FileMainWindow::cdUp);
-    toolbar1->addWidget(upButton);
+    // About button
+    QToolButton *aboutButton = new QToolButton();
+    aboutButton->setText("About");
+    aboutButton->setToolTip("About Palmyra File Manager");
+    aboutButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
+    connect(aboutButton, &QToolButton::clicked, this, &FileMainWindow::about);
+    toolbar1->addWidget(aboutButton);
+    
+    toolbar1->addSeparator();
     
     // Home button
     QToolButton *homeButton = new QToolButton();
     homeButton->setText("Home");
     homeButton->setToolTip("Go to Home Directory");
+    homeButton->setStyleSheet("QToolButton { background-color: gray; color: white; border: 1px solid #666666; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #a0a0a0; } QToolButton:pressed { background-color: #505050; }");
     connect(homeButton, &QToolButton::clicked, this, &FileMainWindow::goHome);
     toolbar1->addWidget(homeButton);
+    
+    // Up button
+    upButton = new QToolButton();
+    upButton->setText("Up");
+    upButton->setToolTip("Go Up");
+    upButton->setStyleSheet("QToolButton { background-color: gray; color: white; border: 1px solid #666666; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #a0a0a0; } QToolButton:pressed { background-color: #505050; }");
+    connect(upButton, &QToolButton::clicked, this, &FileMainWindow::cdUp);
+    toolbar1->addWidget(upButton);
     
     // New folder button
     mkdirButton = new QToolButton();
     mkdirButton->setText("New Folder");
     mkdirButton->setToolTip("New Folder");
+    mkdirButton->setStyleSheet("QToolButton { background-color: gray; color: white; border: 1px solid #666666; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #a0a0a0; } QToolButton:pressed { background-color: #505050; }");
     connect(mkdirButton, &QToolButton::clicked, this, &FileMainWindow::newFolder);
     toolbar1->addWidget(mkdirButton);
     
@@ -105,26 +119,40 @@ void FileMainWindow::setup()
     QToolButton *cutButton = new QToolButton();
     cutButton->setText("Cut");
     cutButton->setToolTip("Cut selected files");
+    cutButton->setStyleSheet("QToolButton { background-color: orange; color: white; border: 1px solid #d4651f; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #ff8c00; } QToolButton:pressed { background-color: #cc5500; }");
     connect(cutButton, &QToolButton::clicked, this, &FileMainWindow::cut);
     toolbar1->addWidget(cutButton);
     
     QToolButton *copyButton = new QToolButton();
     copyButton->setText("Copy");
     copyButton->setToolTip("Copy selected files");
+    copyButton->setStyleSheet("QToolButton { background-color: green; color: white; border: 1px solid #4a7c4a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #32cd32; } QToolButton:pressed { background-color: #228b22; }");
     connect(copyButton, &QToolButton::clicked, this, &FileMainWindow::copy);
     toolbar1->addWidget(copyButton);
     
     QToolButton *pasteButton = new QToolButton();
     pasteButton->setText("Paste");
     pasteButton->setToolTip("Paste files");
+    pasteButton->setStyleSheet("QToolButton { background-color: blue; color: white; border: 1px solid #4a4a7c; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #4169e1; } QToolButton:pressed { background-color: #191970; }");
     connect(pasteButton, &QToolButton::clicked, this, &FileMainWindow::paste);
     toolbar1->addWidget(pasteButton);
     
     QToolButton *deleteButton = new QToolButton();
     deleteButton->setText("Delete");
     deleteButton->setToolTip("Delete selected files");
+    deleteButton->setStyleSheet("QToolButton { background-color: red; color: white; border: 1px solid #7c4a4a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #dc143c; } QToolButton:pressed { background-color: #8b0000; }");
     connect(deleteButton, &QToolButton::clicked, this, &FileMainWindow::remove);
     toolbar1->addWidget(deleteButton);
+    
+    toolbar1->addSeparator();
+    
+    // Exit button
+    QToolButton *exitButton = new QToolButton();
+    exitButton->setText("Exit");
+    exitButton->setToolTip("Exit Application");
+    exitButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
+    connect(exitButton, &QToolButton::clicked, this, &QWidget::close);
+    toolbar1->addWidget(exitButton);
     
     // Path toolbar
     QToolBar *pathToolbar = addToolBar("Path");
@@ -498,9 +526,41 @@ void FileMainWindow::updateonce()
 
 void FileMainWindow::about()
 {
-    QMessageBox::about(this, "About Palmyra FM", 
-                       "PalmyraFM is a simple, two-pane file manager for Linux"
-                       "by Artem Nagornyi (2025)");
+    QString aboutText = 
+        "<h3>Palmyra File Manager</h3>"
+        "<p><b>Version:</b> 1.0</p>"
+        "<p><b>Description:</b> A dual-pane file manager for Linux</p>"
+        "<p><b>Copyright:</b> © Artem Nagornyi, 2025</p>"
+        "<hr>"
+        "<p><b>Key Bindings:</b></p>"
+        "<table cellpadding='3'>"
+        "<tr><td><b>Backspace</b></td><td>Go up directory</td></tr>"
+        "<tr><td><b>Enter</b></td><td>Enter directory/Open file</td></tr>"
+        "<tr><td><b>F7</b></td><td>Create new directory</td></tr>"
+        "<tr><td><b>F8</b></td><td>Delete files</td></tr>"
+        "<tr><td><b>Shift+Del</b></td><td>Delete files</td></tr>"
+        "<tr><td><b>Ctrl+C</b></td><td>Copy files</td></tr>"
+        "<tr><td><b>Ctrl+X</b></td><td>Cut files</td></tr>"
+        "<tr><td><b>Ctrl+V</b></td><td>Paste files</td></tr>"
+        "<tr><td><b>Shift+Insert</b></td><td>Paste files</td></tr>"
+        "<tr><td><b>F1</b></td><td>About dialog</td></tr>"
+        "<tr><td><b>F10</b></td><td>Exit application</td></tr>"
+        "</table>"
+        "<hr>"
+        "<p><b>License:</b> GNU General Public License v3.0</p>"
+        "<p>This program is free software: you can redistribute it and/or modify it "
+        "under the terms of the GNU General Public License as published by the "
+        "Free Software Foundation, either version 3 of the License, or (at your option) "
+        "any later version.</p>"
+        "<p>For the complete license text, visit: "
+        "<a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a></p>";
+    
+    QMessageBox aboutBox(this);
+    aboutBox.setWindowTitle("About Palmyra File Manager");
+    aboutBox.setTextFormat(Qt::RichText);
+    aboutBox.setText(aboutText);
+    aboutBox.setIcon(QMessageBox::Information);
+    aboutBox.exec();
 }
 
 void FileMainWindow::changePath(const QString &path)
@@ -541,6 +601,98 @@ void FileMainWindow::enableMkdir()
 void FileMainWindow::disableMkdir()
 {
     mkdirButton->setEnabled(false);
+}
+
+void FileMainWindow::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+        case Qt::Key_Backspace:
+            // Go up directory
+            cdUp();
+            break;
+            
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
+            // Enter selected directory or open file
+            {
+                QModelIndexList selected = fileview->selectionModel()->selectedIndexes();
+                if (!selected.isEmpty()) {
+                    QModelIndex index = selected.first();
+                    fileview->itemDoubleClicked(index);
+                }
+            }
+            break;
+            
+        case Qt::Key_F7:
+            // Create new directory
+            newFolder();
+            break;
+            
+        case Qt::Key_F8:
+            // Remove files
+            remove();
+            break;
+            
+        case Qt::Key_F1:
+            // Show About dialog
+            about();
+            break;
+            
+        case Qt::Key_F10:
+            // Exit application
+            QApplication::quit();
+            break;
+            
+        case Qt::Key_C:
+            if (event->modifiers() & Qt::ControlModifier) {
+                // Ctrl+C: Copy files
+                copy();
+            } else {
+                QMainWindow::keyPressEvent(event);
+            }
+            break;
+            
+        case Qt::Key_X:
+            if (event->modifiers() & Qt::ControlModifier) {
+                // Ctrl+X: Cut files
+                cut();
+            } else {
+                QMainWindow::keyPressEvent(event);
+            }
+            break;
+            
+        case Qt::Key_V:
+            if (event->modifiers() & Qt::ControlModifier) {
+                // Ctrl+V: Paste files
+                paste();
+            } else {
+                QMainWindow::keyPressEvent(event);
+            }
+            break;
+            
+        case Qt::Key_Insert:
+            if (event->modifiers() & Qt::ShiftModifier) {
+                // Shift+Insert: Paste files
+                paste();
+            } else {
+                QMainWindow::keyPressEvent(event);
+            }
+            break;
+            
+        case Qt::Key_Delete:
+            if (event->modifiers() & Qt::ShiftModifier) {
+                // Shift+Delete: Delete files
+                remove();
+            } else {
+                QMainWindow::keyPressEvent(event);
+            }
+            break;
+            
+        default:
+            // Pass other keys to parent
+            QMainWindow::keyPressEvent(event);
+            break;
+    }
 }
 
 bool FileMainWindow::copyDirectoryRecursively(const QString &sourceDir, const QString &targetDir, bool moveOperation)
@@ -776,11 +928,28 @@ void QtFileIconView::slotDropped(QDropEvent *e)
 
 void QtFileIconView::keyPressEvent(QKeyEvent *e)
 {
-    if (e->key() == Qt::Key_N && (e->modifiers() & Qt::ControlModifier)) {
-        newDirectory();
-    } else {
-        QListView::keyPressEvent(e);
+    switch (e->key()) {
+        case Qt::Key_N:
+            if (e->modifiers() & Qt::ControlModifier) {
+                newDirectory();
+                return;
+            }
+            break;
+            
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
+            {
+                QModelIndexList selected = selectionModel()->selectedIndexes();
+                if (!selected.isEmpty()) {
+                    itemDoubleClicked(selected.first());
+                    return;
+                }
+            }
+            break;
     }
+    
+    // Pass other keys to parent
+    QListView::keyPressEvent(e);
 }
 
 QDrag *QtFileIconView::dragObject()

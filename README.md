@@ -39,3 +39,22 @@ make
 # Run (requires display)
 ./palmyrafm
 ```
+
+## Features
+
+### Core Functionality
+- **Dual-pane interface** with directory tree and file list
+- **Complete file operations**: copy, cut, paste, delete, new folder
+- **Progress dialogs** for long-running operations
+- **Native Qt6 APIs** for reliable file handling
+
+### Keyboard Shortcuts
+- **Backspace**: Go up directory
+- **Enter**: Enter directory or open file
+- **F7**: Create new directory
+- **F8 / Shift+Delete**: Delete selected files
+- **Ctrl+C**: Copy files
+- **Ctrl+X**: Cut files  
+- **Ctrl+V / Shift+Insert**: Paste files
+- **F1**: About dialog (includes key bindings reference)
+- **F10**: Exit application
