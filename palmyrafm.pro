@@ -1,14 +1,12 @@
-TEMPLATE	= app
-TARGET		= palmyrafm
+QT += core widgets gui concurrent
 
-CONFIG		+= qt warn_on release
+TARGET = palmyrafm
+TEMPLATE = app
 
+CONFIG += c++17
 
+HEADERS = palmyrafm.h
 
-
-HEADERS		= palmyrafm.h \
-			dirview.h
-SOURCES		= main.cpp \
-		  palmyrafm.cpp \
-			dirview.cpp
-			
+SOURCES = main.cpp \
+          palmyrafm.cpp \
+          dirview.cpp
