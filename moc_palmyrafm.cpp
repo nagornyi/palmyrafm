@@ -1,594 +1,856 @@
 /****************************************************************************
-** FileMainWindow meta object code from reading C++ file 'palmyrafm.h'
+** Meta object code from reading C++ file 'palmyrafm.h'
 **
-** Created: Sun Apr 30 13:34:41 2006
-**      by: The Qt MOC ($Id: qt/moc_yacc.cpp   3.3.4   edited Jan 21 18:14 $)
+** Created by: The Qt Meta Object Compiler version 68 (Qt 6.2.4)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#undef QT_NO_COMPAT
+#include <memory>
 #include "palmyrafm.h"
-#include <qmetaobject.h>
-#include <qapplication.h>
-
-#include <private/qucomextra_p.h>
-#if !defined(Q_MOC_OUTPUT_REVISION) || (Q_MOC_OUTPUT_REVISION != 26)
-#error "This file was generated using the moc from 3.3.4. It"
+#include <QtGui/qtextcursor.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qmetatype.h>
+#if !defined(Q_MOC_OUTPUT_REVISION)
+#error "The header file 'palmyrafm.h' doesn't include <QObject>."
+#elif Q_MOC_OUTPUT_REVISION != 68
+#error "This file was generated using the moc from 6.2.4. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
 
-const char *FileMainWindow::className() const
-{
-    return "FileMainWindow";
-}
+QT_BEGIN_MOC_NAMESPACE
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+struct qt_meta_stringdata_FileMainWindow_t {
+    const uint offsetsAndSize[50];
+    char stringdata0[239];
+};
+#define QT_MOC_LITERAL(ofs, len) \
+    uint(offsetof(qt_meta_stringdata_FileMainWindow_t, stringdata0) + ofs), len 
+static const qt_meta_stringdata_FileMainWindow_t qt_meta_stringdata_FileMainWindow = {
+    {
+QT_MOC_LITERAL(0, 14), // "FileMainWindow"
+QT_MOC_LITERAL(15, 16), // "directoryChanged"
+QT_MOC_LITERAL(32, 0), // ""
+QT_MOC_LITERAL(33, 16), // "slotStartReadDir"
+QT_MOC_LITERAL(50, 4), // "dirs"
+QT_MOC_LITERAL(55, 15), // "slotReadNextDir"
+QT_MOC_LITERAL(71, 15), // "slotReadDirDone"
+QT_MOC_LITERAL(87, 4), // "cdUp"
+QT_MOC_LITERAL(92, 6), // "goHome"
+QT_MOC_LITERAL(99, 9), // "newFolder"
+QT_MOC_LITERAL(109, 3), // "cut"
+QT_MOC_LITERAL(113, 4), // "copy"
+QT_MOC_LITERAL(118, 5), // "paste"
+QT_MOC_LITERAL(124, 6), // "rename"
+QT_MOC_LITERAL(131, 6), // "remove"
+QT_MOC_LITERAL(138, 6), // "update"
+QT_MOC_LITERAL(145, 10), // "updateonce"
+QT_MOC_LITERAL(156, 5), // "about"
+QT_MOC_LITERAL(162, 10), // "changePath"
+QT_MOC_LITERAL(173, 4), // "path"
+QT_MOC_LITERAL(178, 16), // "pathEditFinished"
+QT_MOC_LITERAL(195, 8), // "enableUp"
+QT_MOC_LITERAL(204, 9), // "disableUp"
+QT_MOC_LITERAL(214, 11), // "enableMkdir"
+QT_MOC_LITERAL(226, 12) // "disableMkdir"
 
-QMetaObject *FileMainWindow::metaObj = 0;
-static QMetaObjectCleanUp cleanUp_FileMainWindow( "FileMainWindow", &FileMainWindow::staticMetaObject );
+    },
+    "FileMainWindow\0directoryChanged\0\0"
+    "slotStartReadDir\0dirs\0slotReadNextDir\0"
+    "slotReadDirDone\0cdUp\0goHome\0newFolder\0"
+    "cut\0copy\0paste\0rename\0remove\0update\0"
+    "updateonce\0about\0changePath\0path\0"
+    "pathEditFinished\0enableUp\0disableUp\0"
+    "enableMkdir\0disableMkdir"
+};
+#undef QT_MOC_LITERAL
 
-#ifndef QT_NO_TRANSLATION
-QString FileMainWindow::tr( const char *s, const char *c )
-{
-    if ( qApp )
-	return qApp->translate( "FileMainWindow", s, c, QApplication::DefaultCodec );
-    else
-	return QString::fromLatin1( s );
-}
-#ifndef QT_NO_TRANSLATION_UTF8
-QString FileMainWindow::trUtf8( const char *s, const char *c )
-{
-    if ( qApp )
-	return qApp->translate( "FileMainWindow", s, c, QApplication::UnicodeUTF8 );
-    else
-	return QString::fromUtf8( s );
-}
-#endif // QT_NO_TRANSLATION_UTF8
+static const uint qt_meta_data_FileMainWindow[] = {
 
-#endif // QT_NO_TRANSLATION
+ // content:
+      10,       // revision
+       0,       // classname
+       0,    0, // classinfo
+      21,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
 
-QMetaObject* FileMainWindow::staticMetaObject()
-{
-    if ( metaObj )
-	return metaObj;
-    QMetaObject* parentObject = QMainWindow::staticMetaObject();
-    static const QUParameter param_slot_0[] = {
-	{ 0, &static_QUType_QString, 0, QUParameter::In }
-    };
-    static const QUMethod slot_0 = {"directoryChanged", 1, param_slot_0 };
-    static const QUParameter param_slot_1[] = {
-	{ "dirs", &static_QUType_int, 0, QUParameter::In }
-    };
-    static const QUMethod slot_1 = {"slotStartReadDir", 1, param_slot_1 };
-    static const QUMethod slot_2 = {"slotReadNextDir", 0, 0 };
-    static const QUMethod slot_3 = {"slotReadDirDone", 0, 0 };
-    static const QUMethod slot_4 = {"cdUp", 0, 0 };
-    static const QUMethod slot_5 = {"newFolder", 0, 0 };
-    static const QUMethod slot_6 = {"cut", 0, 0 };
-    static const QUMethod slot_7 = {"copy", 0, 0 };
-    static const QUMethod slot_8 = {"paste", 0, 0 };
-    static const QUMethod slot_9 = {"rename", 0, 0 };
-    static const QUMethod slot_10 = {"remove", 0, 0 };
-    static const QUMethod slot_11 = {"update", 0, 0 };
-    static const QUMethod slot_12 = {"updateonce", 0, 0 };
-    static const QUMethod slot_13 = {"about", 0, 0 };
-    static const QUParameter param_slot_14[] = {
-	{ "path", &static_QUType_QString, 0, QUParameter::In }
-    };
-    static const QUMethod slot_14 = {"changePath", 1, param_slot_14 };
-    static const QUMethod slot_15 = {"enableUp", 0, 0 };
-    static const QUMethod slot_16 = {"disableUp", 0, 0 };
-    static const QUMethod slot_17 = {"enableMkdir", 0, 0 };
-    static const QUMethod slot_18 = {"disableMkdir", 0, 0 };
-    static const QMetaData slot_tbl[] = {
-	{ "directoryChanged(const QString&)", &slot_0, QMetaData::Protected },
-	{ "slotStartReadDir(int)", &slot_1, QMetaData::Protected },
-	{ "slotReadNextDir()", &slot_2, QMetaData::Protected },
-	{ "slotReadDirDone()", &slot_3, QMetaData::Protected },
-	{ "cdUp()", &slot_4, QMetaData::Protected },
-	{ "newFolder()", &slot_5, QMetaData::Protected },
-	{ "cut()", &slot_6, QMetaData::Protected },
-	{ "copy()", &slot_7, QMetaData::Protected },
-	{ "paste()", &slot_8, QMetaData::Protected },
-	{ "rename()", &slot_9, QMetaData::Protected },
-	{ "remove()", &slot_10, QMetaData::Protected },
-	{ "update()", &slot_11, QMetaData::Protected },
-	{ "updateonce()", &slot_12, QMetaData::Protected },
-	{ "about()", &slot_13, QMetaData::Protected },
-	{ "changePath(const QString&)", &slot_14, QMetaData::Protected },
-	{ "enableUp()", &slot_15, QMetaData::Protected },
-	{ "disableUp()", &slot_16, QMetaData::Protected },
-	{ "enableMkdir()", &slot_17, QMetaData::Protected },
-	{ "disableMkdir()", &slot_18, QMetaData::Protected }
-    };
-    metaObj = QMetaObject::new_metaobject(
-	"FileMainWindow", parentObject,
-	slot_tbl, 19,
-	0, 0,
-#ifndef QT_NO_PROPERTIES
-	0, 0,
-	0, 0,
-#endif // QT_NO_PROPERTIES
-	0, 0 );
-    cleanUp_FileMainWindow.setMetaObject( metaObj );
-    return metaObj;
-}
+ // slots: name, argc, parameters, tag, flags, initial metatype offsets
+       1,    1,  140,    2, 0x09,    1 /* Protected */,
+       3,    1,  143,    2, 0x09,    3 /* Protected */,
+       5,    0,  146,    2, 0x09,    5 /* Protected */,
+       6,    0,  147,    2, 0x09,    6 /* Protected */,
+       7,    0,  148,    2, 0x09,    7 /* Protected */,
+       8,    0,  149,    2, 0x09,    8 /* Protected */,
+       9,    0,  150,    2, 0x09,    9 /* Protected */,
+      10,    0,  151,    2, 0x09,   10 /* Protected */,
+      11,    0,  152,    2, 0x09,   11 /* Protected */,
+      12,    0,  153,    2, 0x09,   12 /* Protected */,
+      13,    0,  154,    2, 0x09,   13 /* Protected */,
+      14,    0,  155,    2, 0x09,   14 /* Protected */,
+      15,    0,  156,    2, 0x09,   15 /* Protected */,
+      16,    0,  157,    2, 0x09,   16 /* Protected */,
+      17,    0,  158,    2, 0x09,   17 /* Protected */,
+      18,    1,  159,    2, 0x09,   18 /* Protected */,
+      20,    0,  162,    2, 0x09,   20 /* Protected */,
+      21,    0,  163,    2, 0x09,   21 /* Protected */,
+      22,    0,  164,    2, 0x09,   22 /* Protected */,
+      23,    0,  165,    2, 0x09,   23 /* Protected */,
+      24,    0,  166,    2, 0x09,   24 /* Protected */,
 
-void* FileMainWindow::qt_cast( const char* clname )
-{
-    if ( !qstrcmp( clname, "FileMainWindow" ) )
-	return this;
-    return QMainWindow::qt_cast( clname );
-}
+ // slots: parameters
+    QMetaType::Void, QMetaType::QString,    2,
+    QMetaType::Void, QMetaType::Int,    4,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, QMetaType::QString,   19,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
 
-bool FileMainWindow::qt_invoke( int _id, QUObject* _o )
+       0        // eod
+};
+
+void FileMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    switch ( _id - staticMetaObject()->slotOffset() ) {
-    case 0: directoryChanged((const QString&)static_QUType_QString.get(_o+1)); break;
-    case 1: slotStartReadDir((int)static_QUType_int.get(_o+1)); break;
-    case 2: slotReadNextDir(); break;
-    case 3: slotReadDirDone(); break;
-    case 4: cdUp(); break;
-    case 5: newFolder(); break;
-    case 6: cut(); break;
-    case 7: copy(); break;
-    case 8: paste(); break;
-    case 9: rename(); break;
-    case 10: remove(); break;
-    case 11: update(); break;
-    case 12: updateonce(); break;
-    case 13: about(); break;
-    case 14: changePath((const QString&)static_QUType_QString.get(_o+1)); break;
-    case 15: enableUp(); break;
-    case 16: disableUp(); break;
-    case 17: enableMkdir(); break;
-    case 18: disableMkdir(); break;
-    default:
-	return QMainWindow::qt_invoke( _id, _o );
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        auto *_t = static_cast<FileMainWindow *>(_o);
+        (void)_t;
+        switch (_id) {
+        case 0: _t->directoryChanged((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 1: _t->slotStartReadDir((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 2: _t->slotReadNextDir(); break;
+        case 3: _t->slotReadDirDone(); break;
+        case 4: _t->cdUp(); break;
+        case 5: _t->goHome(); break;
+        case 6: _t->newFolder(); break;
+        case 7: _t->cut(); break;
+        case 8: _t->copy(); break;
+        case 9: _t->paste(); break;
+        case 10: _t->rename(); break;
+        case 11: _t->remove(); break;
+        case 12: _t->update(); break;
+        case 13: _t->updateonce(); break;
+        case 14: _t->about(); break;
+        case 15: _t->changePath((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 16: _t->pathEditFinished(); break;
+        case 17: _t->enableUp(); break;
+        case 18: _t->disableUp(); break;
+        case 19: _t->enableMkdir(); break;
+        case 20: _t->disableMkdir(); break;
+        default: ;
+        }
     }
-    return TRUE;
 }
 
-bool FileMainWindow::qt_emit( int _id, QUObject* _o )
+const QMetaObject FileMainWindow::staticMetaObject = { {
+    QMetaObject::SuperData::link<QMainWindow::staticMetaObject>(),
+    qt_meta_stringdata_FileMainWindow.offsetsAndSize,
+    qt_meta_data_FileMainWindow,
+    qt_static_metacall,
+    nullptr,
+qt_incomplete_metaTypeArray<qt_meta_stringdata_FileMainWindow_t
+, QtPrivate::TypeAndForceComplete<FileMainWindow, std::true_type>
+, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<int, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>
+
+
+>,
+    nullptr
+} };
+
+
+const QMetaObject *FileMainWindow::metaObject() const
 {
-    return QMainWindow::qt_emit(_id,_o);
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
-#ifndef QT_NO_PROPERTIES
 
-bool FileMainWindow::qt_property( int id, int f, QVariant* v)
+void *FileMainWindow::qt_metacast(const char *_clname)
 {
-    return QMainWindow::qt_property( id, f, v);
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_FileMainWindow.stringdata0))
+        return static_cast<void*>(this);
+    return QMainWindow::qt_metacast(_clname);
 }
 
-bool FileMainWindow::qt_static_property( QObject* , int , int , QVariant* ){ return FALSE; }
-#endif // QT_NO_PROPERTIES
-
-
-const char *Copier::className() const
+int FileMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    return "Copier";
+    _id = QMainWindow::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 21)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 21;
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        if (_id < 21)
+            *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
+        _id -= 21;
+    }
+    return _id;
 }
+struct qt_meta_stringdata_Copier_t {
+    const uint offsetsAndSize[2];
+    char stringdata0[7];
+};
+#define QT_MOC_LITERAL(ofs, len) \
+    uint(offsetof(qt_meta_stringdata_Copier_t, stringdata0) + ofs), len 
+static const qt_meta_stringdata_Copier_t qt_meta_stringdata_Copier = {
+    {
+QT_MOC_LITERAL(0, 6) // "Copier"
 
-QMetaObject *Copier::metaObj = 0;
-static QMetaObjectCleanUp cleanUp_Copier( "Copier", &Copier::staticMetaObject );
+    },
+    "Copier"
+};
+#undef QT_MOC_LITERAL
 
-#ifndef QT_NO_TRANSLATION
-QString Copier::tr( const char *s, const char *c )
+static const uint qt_meta_data_Copier[] = {
+
+ // content:
+      10,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       0,    0, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+       0        // eod
+};
+
+void Copier::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    if ( qApp )
-	return qApp->translate( "Copier", s, c, QApplication::DefaultCodec );
-    else
-	return QString::fromLatin1( s );
+    (void)_o;
+    (void)_id;
+    (void)_c;
+    (void)_a;
 }
-#ifndef QT_NO_TRANSLATION_UTF8
-QString Copier::trUtf8( const char *s, const char *c )
+
+const QMetaObject Copier::staticMetaObject = { {
+    QMetaObject::SuperData::link<QWidget::staticMetaObject>(),
+    qt_meta_stringdata_Copier.offsetsAndSize,
+    qt_meta_data_Copier,
+    qt_static_metacall,
+    nullptr,
+qt_incomplete_metaTypeArray<qt_meta_stringdata_Copier_t
+, QtPrivate::TypeAndForceComplete<Copier, std::true_type>
+
+
+
+>,
+    nullptr
+} };
+
+
+const QMetaObject *Copier::metaObject() const
 {
-    if ( qApp )
-	return qApp->translate( "Copier", s, c, QApplication::UnicodeUTF8 );
-    else
-	return QString::fromUtf8( s );
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
-#endif // QT_NO_TRANSLATION_UTF8
 
-#endif // QT_NO_TRANSLATION
-
-QMetaObject* Copier::staticMetaObject()
+void *Copier::qt_metacast(const char *_clname)
 {
-    if ( metaObj )
-	return metaObj;
-    QMetaObject* parentObject = QVBox::staticMetaObject();
-    metaObj = QMetaObject::new_metaobject(
-	"Copier", parentObject,
-	0, 0,
-	0, 0,
-#ifndef QT_NO_PROPERTIES
-	0, 0,
-	0, 0,
-#endif // QT_NO_PROPERTIES
-	0, 0 );
-    cleanUp_Copier.setMetaObject( metaObj );
-    return metaObj;
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_Copier.stringdata0))
+        return static_cast<void*>(this);
+    return QWidget::qt_metacast(_clname);
 }
 
-void* Copier::qt_cast( const char* clname )
+int Copier::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    if ( !qstrcmp( clname, "Copier" ) )
-	return this;
-    return QVBox::qt_cast( clname );
+    _id = QWidget::qt_metacall(_c, _id, _a);
+    return _id;
 }
+struct qt_meta_stringdata_QtFileIconDrag_t {
+    const uint offsetsAndSize[2];
+    char stringdata0[15];
+};
+#define QT_MOC_LITERAL(ofs, len) \
+    uint(offsetof(qt_meta_stringdata_QtFileIconDrag_t, stringdata0) + ofs), len 
+static const qt_meta_stringdata_QtFileIconDrag_t qt_meta_stringdata_QtFileIconDrag = {
+    {
+QT_MOC_LITERAL(0, 14) // "QtFileIconDrag"
 
-bool Copier::qt_invoke( int _id, QUObject* _o )
+    },
+    "QtFileIconDrag"
+};
+#undef QT_MOC_LITERAL
+
+static const uint qt_meta_data_QtFileIconDrag[] = {
+
+ // content:
+      10,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       0,    0, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+       0        // eod
+};
+
+void QtFileIconDrag::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    return QVBox::qt_invoke(_id,_o);
+    (void)_o;
+    (void)_id;
+    (void)_c;
+    (void)_a;
 }
 
-bool Copier::qt_emit( int _id, QUObject* _o )
+const QMetaObject QtFileIconDrag::staticMetaObject = { {
+    QMetaObject::SuperData::link<QDrag::staticMetaObject>(),
+    qt_meta_stringdata_QtFileIconDrag.offsetsAndSize,
+    qt_meta_data_QtFileIconDrag,
+    qt_static_metacall,
+    nullptr,
+qt_incomplete_metaTypeArray<qt_meta_stringdata_QtFileIconDrag_t
+, QtPrivate::TypeAndForceComplete<QtFileIconDrag, std::true_type>
+
+
+
+>,
+    nullptr
+} };
+
+
+const QMetaObject *QtFileIconDrag::metaObject() const
 {
-    return QVBox::qt_emit(_id,_o);
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
-#ifndef QT_NO_PROPERTIES
 
-bool Copier::qt_property( int id, int f, QVariant* v)
+void *QtFileIconDrag::qt_metacast(const char *_clname)
 {
-    return QVBox::qt_property( id, f, v);
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_QtFileIconDrag.stringdata0))
+        return static_cast<void*>(this);
+    return QDrag::qt_metacast(_clname);
 }
 
-bool Copier::qt_static_property( QObject* , int , int , QVariant* ){ return FALSE; }
-#endif // QT_NO_PROPERTIES
-
-
-const char *QtFileIconDrag::className() const
+int QtFileIconDrag::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    return "QtFileIconDrag";
+    _id = QDrag::qt_metacall(_c, _id, _a);
+    return _id;
 }
+struct qt_meta_stringdata_QtFileIconView_t {
+    const uint offsetsAndSize[92];
+    char stringdata0[501];
+};
+#define QT_MOC_LITERAL(ofs, len) \
+    uint(offsetof(qt_meta_stringdata_QtFileIconView_t, stringdata0) + ofs), len 
+static const qt_meta_stringdata_QtFileIconView_t qt_meta_stringdata_QtFileIconView = {
+    {
+QT_MOC_LITERAL(0, 14), // "QtFileIconView"
+QT_MOC_LITERAL(15, 16), // "directoryChanged"
+QT_MOC_LITERAL(32, 0), // ""
+QT_MOC_LITERAL(33, 12), // "startReadDir"
+QT_MOC_LITERAL(46, 4), // "dirs"
+QT_MOC_LITERAL(51, 11), // "readNextDir"
+QT_MOC_LITERAL(63, 11), // "readDirDone"
+QT_MOC_LITERAL(75, 8), // "enableUp"
+QT_MOC_LITERAL(84, 9), // "disableUp"
+QT_MOC_LITERAL(94, 11), // "enableMkdir"
+QT_MOC_LITERAL(106, 12), // "disableMkdir"
+QT_MOC_LITERAL(119, 12), // "setDirectory"
+QT_MOC_LITERAL(132, 3), // "dir"
+QT_MOC_LITERAL(136, 4), // "QDir"
+QT_MOC_LITERAL(141, 12), // "newDirectory"
+QT_MOC_LITERAL(154, 8), // "cut_prev"
+QT_MOC_LITERAL(163, 9), // "copy_prev"
+QT_MOC_LITERAL(173, 11), // "rename_prev"
+QT_MOC_LITERAL(185, 11), // "remove_prev"
+QT_MOC_LITERAL(197, 10), // "updateonce"
+QT_MOC_LITERAL(208, 7), // "cut_fin"
+QT_MOC_LITERAL(216, 11), // "QModelIndex"
+QT_MOC_LITERAL(228, 4), // "item"
+QT_MOC_LITERAL(233, 8), // "copy_fin"
+QT_MOC_LITERAL(242, 10), // "rename_fin"
+QT_MOC_LITERAL(253, 10), // "remove_fin"
+QT_MOC_LITERAL(264, 5), // "paste"
+QT_MOC_LITERAL(270, 17), // "itemDoubleClicked"
+QT_MOC_LITERAL(288, 5), // "index"
+QT_MOC_LITERAL(294, 11), // "slotDropped"
+QT_MOC_LITERAL(306, 11), // "QDropEvent*"
+QT_MOC_LITERAL(318, 1), // "e"
+QT_MOC_LITERAL(320, 9), // "viewLarge"
+QT_MOC_LITERAL(330, 10), // "viewDetail"
+QT_MOC_LITERAL(341, 10), // "viewBottom"
+QT_MOC_LITERAL(352, 9), // "viewRight"
+QT_MOC_LITERAL(362, 8), // "flowEast"
+QT_MOC_LITERAL(371, 9), // "flowSouth"
+QT_MOC_LITERAL(381, 16), // "itemTextTruncate"
+QT_MOC_LITERAL(398, 16), // "itemTextWordWrap"
+QT_MOC_LITERAL(415, 13), // "sortAscending"
+QT_MOC_LITERAL(429, 14), // "sortDescending"
+QT_MOC_LITERAL(444, 18), // "arrangeItemsInGrid"
+QT_MOC_LITERAL(463, 16), // "slotRightPressed"
+QT_MOC_LITERAL(480, 10), // "openFolder"
+QT_MOC_LITERAL(491, 9) // "regupdate"
 
-QMetaObject *QtFileIconDrag::metaObj = 0;
-static QMetaObjectCleanUp cleanUp_QtFileIconDrag( "QtFileIconDrag", &QtFileIconDrag::staticMetaObject );
+    },
+    "QtFileIconView\0directoryChanged\0\0"
+    "startReadDir\0dirs\0readNextDir\0readDirDone\0"
+    "enableUp\0disableUp\0enableMkdir\0"
+    "disableMkdir\0setDirectory\0dir\0QDir\0"
+    "newDirectory\0cut_prev\0copy_prev\0"
+    "rename_prev\0remove_prev\0updateonce\0"
+    "cut_fin\0QModelIndex\0item\0copy_fin\0"
+    "rename_fin\0remove_fin\0paste\0"
+    "itemDoubleClicked\0index\0slotDropped\0"
+    "QDropEvent*\0e\0viewLarge\0viewDetail\0"
+    "viewBottom\0viewRight\0flowEast\0flowSouth\0"
+    "itemTextTruncate\0itemTextWordWrap\0"
+    "sortAscending\0sortDescending\0"
+    "arrangeItemsInGrid\0slotRightPressed\0"
+    "openFolder\0regupdate"
+};
+#undef QT_MOC_LITERAL
 
-#ifndef QT_NO_TRANSLATION
-QString QtFileIconDrag::tr( const char *s, const char *c )
+static const uint qt_meta_data_QtFileIconView[] = {
+
+ // content:
+      10,       // revision
+       0,       // classname
+       0,    0, // classinfo
+      37,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       8,       // signalCount
+
+ // signals: name, argc, parameters, tag, flags, initial metatype offsets
+       1,    1,  236,    2, 0x06,    1 /* Public */,
+       3,    1,  239,    2, 0x06,    3 /* Public */,
+       5,    0,  242,    2, 0x06,    5 /* Public */,
+       6,    0,  243,    2, 0x06,    6 /* Public */,
+       7,    0,  244,    2, 0x06,    7 /* Public */,
+       8,    0,  245,    2, 0x06,    8 /* Public */,
+       9,    0,  246,    2, 0x06,    9 /* Public */,
+      10,    0,  247,    2, 0x06,   10 /* Public */,
+
+ // slots: name, argc, parameters, tag, flags, initial metatype offsets
+      11,    1,  248,    2, 0x0a,   11 /* Public */,
+      11,    1,  251,    2, 0x0a,   13 /* Public */,
+      14,    0,  254,    2, 0x0a,   15 /* Public */,
+      15,    0,  255,    2, 0x0a,   16 /* Public */,
+      16,    0,  256,    2, 0x0a,   17 /* Public */,
+      17,    0,  257,    2, 0x0a,   18 /* Public */,
+      18,    0,  258,    2, 0x0a,   19 /* Public */,
+      19,    0,  259,    2, 0x0a,   20 /* Public */,
+      20,    1,  260,    2, 0x0a,   21 /* Public */,
+      23,    1,  263,    2, 0x0a,   23 /* Public */,
+      24,    1,  266,    2, 0x0a,   25 /* Public */,
+      25,    1,  269,    2, 0x0a,   27 /* Public */,
+      26,    0,  272,    2, 0x0a,   29 /* Public */,
+      27,    1,  273,    2, 0x09,   30 /* Protected */,
+      29,    1,  276,    2, 0x09,   32 /* Protected */,
+      32,    0,  279,    2, 0x09,   34 /* Protected */,
+      33,    0,  280,    2, 0x09,   35 /* Protected */,
+      34,    0,  281,    2, 0x09,   36 /* Protected */,
+      35,    0,  282,    2, 0x09,   37 /* Protected */,
+      36,    0,  283,    2, 0x09,   38 /* Protected */,
+      37,    0,  284,    2, 0x09,   39 /* Protected */,
+      38,    0,  285,    2, 0x09,   40 /* Protected */,
+      39,    0,  286,    2, 0x09,   41 /* Protected */,
+      40,    0,  287,    2, 0x09,   42 /* Protected */,
+      41,    0,  288,    2, 0x09,   43 /* Protected */,
+      42,    0,  289,    2, 0x09,   44 /* Protected */,
+      43,    1,  290,    2, 0x09,   45 /* Protected */,
+      44,    0,  293,    2, 0x09,   47 /* Protected */,
+      45,    0,  294,    2, 0x09,   48 /* Protected */,
+
+ // signals: parameters
+    QMetaType::Void, QMetaType::QString,    2,
+    QMetaType::Void, QMetaType::Int,    4,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+
+ // slots: parameters
+    QMetaType::Void, QMetaType::QString,   12,
+    QMetaType::Void, 0x80000000 | 13,   12,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 21,   22,
+    QMetaType::Void, 0x80000000 | 21,   22,
+    QMetaType::Void, 0x80000000 | 21,   22,
+    QMetaType::Void, 0x80000000 | 21,   22,
+    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 21,   28,
+    QMetaType::Void, 0x80000000 | 30,   31,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 21,   28,
+    QMetaType::Void,
+    QMetaType::Void,
+
+       0        // eod
+};
+
+void QtFileIconView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    if ( qApp )
-	return qApp->translate( "QtFileIconDrag", s, c, QApplication::DefaultCodec );
-    else
-	return QString::fromLatin1( s );
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        auto *_t = static_cast<QtFileIconView *>(_o);
+        (void)_t;
+        switch (_id) {
+        case 0: _t->directoryChanged((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 1: _t->startReadDir((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 2: _t->readNextDir(); break;
+        case 3: _t->readDirDone(); break;
+        case 4: _t->enableUp(); break;
+        case 5: _t->disableUp(); break;
+        case 6: _t->enableMkdir(); break;
+        case 7: _t->disableMkdir(); break;
+        case 8: _t->setDirectory((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 9: _t->setDirectory((*reinterpret_cast< std::add_pointer_t<QDir>>(_a[1]))); break;
+        case 10: _t->newDirectory(); break;
+        case 11: _t->cut_prev(); break;
+        case 12: _t->copy_prev(); break;
+        case 13: _t->rename_prev(); break;
+        case 14: _t->remove_prev(); break;
+        case 15: _t->updateonce(); break;
+        case 16: _t->cut_fin((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 17: _t->copy_fin((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 18: _t->rename_fin((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 19: _t->remove_fin((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 20: _t->paste(); break;
+        case 21: _t->itemDoubleClicked((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 22: _t->slotDropped((*reinterpret_cast< std::add_pointer_t<QDropEvent*>>(_a[1]))); break;
+        case 23: _t->viewLarge(); break;
+        case 24: _t->viewDetail(); break;
+        case 25: _t->viewBottom(); break;
+        case 26: _t->viewRight(); break;
+        case 27: _t->flowEast(); break;
+        case 28: _t->flowSouth(); break;
+        case 29: _t->itemTextTruncate(); break;
+        case 30: _t->itemTextWordWrap(); break;
+        case 31: _t->sortAscending(); break;
+        case 32: _t->sortDescending(); break;
+        case 33: _t->arrangeItemsInGrid(); break;
+        case 34: _t->slotRightPressed((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 35: _t->openFolder(); break;
+        case 36: _t->regupdate(); break;
+        default: ;
+        }
+    } else if (_c == QMetaObject::IndexOfMethod) {
+        int *result = reinterpret_cast<int *>(_a[0]);
+        {
+            using _t = void (QtFileIconView::*)(const QString & );
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::directoryChanged)) {
+                *result = 0;
+                return;
+            }
+        }
+        {
+            using _t = void (QtFileIconView::*)(int );
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::startReadDir)) {
+                *result = 1;
+                return;
+            }
+        }
+        {
+            using _t = void (QtFileIconView::*)();
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::readNextDir)) {
+                *result = 2;
+                return;
+            }
+        }
+        {
+            using _t = void (QtFileIconView::*)();
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::readDirDone)) {
+                *result = 3;
+                return;
+            }
+        }
+        {
+            using _t = void (QtFileIconView::*)();
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::enableUp)) {
+                *result = 4;
+                return;
+            }
+        }
+        {
+            using _t = void (QtFileIconView::*)();
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::disableUp)) {
+                *result = 5;
+                return;
+            }
+        }
+        {
+            using _t = void (QtFileIconView::*)();
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::enableMkdir)) {
+                *result = 6;
+                return;
+            }
+        }
+        {
+            using _t = void (QtFileIconView::*)();
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&QtFileIconView::disableMkdir)) {
+                *result = 7;
+                return;
+            }
+        }
+    }
 }
-#ifndef QT_NO_TRANSLATION_UTF8
-QString QtFileIconDrag::trUtf8( const char *s, const char *c )
+
+const QMetaObject QtFileIconView::staticMetaObject = { {
+    QMetaObject::SuperData::link<QListView::staticMetaObject>(),
+    qt_meta_stringdata_QtFileIconView.offsetsAndSize,
+    qt_meta_data_QtFileIconView,
+    qt_static_metacall,
+    nullptr,
+qt_incomplete_metaTypeArray<qt_meta_stringdata_QtFileIconView_t
+, QtPrivate::TypeAndForceComplete<QtFileIconView, std::true_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<int, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>
+, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QDir &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QModelIndex, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QModelIndex, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QModelIndex, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QModelIndex, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QModelIndex &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QDropEvent *, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QModelIndex &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>
+
+
+>,
+    nullptr
+} };
+
+
+const QMetaObject *QtFileIconView::metaObject() const
 {
-    if ( qApp )
-	return qApp->translate( "QtFileIconDrag", s, c, QApplication::UnicodeUTF8 );
-    else
-	return QString::fromUtf8( s );
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
-#endif // QT_NO_TRANSLATION_UTF8
 
-#endif // QT_NO_TRANSLATION
-
-QMetaObject* QtFileIconDrag::staticMetaObject()
+void *QtFileIconView::qt_metacast(const char *_clname)
 {
-    if ( metaObj )
-	return metaObj;
-    QMetaObject* parentObject = QIconDrag::staticMetaObject();
-    metaObj = QMetaObject::new_metaobject(
-	"QtFileIconDrag", parentObject,
-	0, 0,
-	0, 0,
-#ifndef QT_NO_PROPERTIES
-	0, 0,
-	0, 0,
-#endif // QT_NO_PROPERTIES
-	0, 0 );
-    cleanUp_QtFileIconDrag.setMetaObject( metaObj );
-    return metaObj;
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_QtFileIconView.stringdata0))
+        return static_cast<void*>(this);
+    return QListView::qt_metacast(_clname);
 }
 
-void* QtFileIconDrag::qt_cast( const char* clname )
+int QtFileIconView::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    if ( !qstrcmp( clname, "QtFileIconDrag" ) )
-	return this;
-    return QIconDrag::qt_cast( clname );
+    _id = QListView::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 37)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 37;
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        if (_id < 37)
+            *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
+        _id -= 37;
+    }
+    return _id;
 }
 
-bool QtFileIconDrag::qt_invoke( int _id, QUObject* _o )
+// SIGNAL 0
+void QtFileIconView::directoryChanged(const QString & _t1)
 {
-    return QIconDrag::qt_invoke(_id,_o);
+    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))) };
+    QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
 
-bool QtFileIconDrag::qt_emit( int _id, QUObject* _o )
+// SIGNAL 1
+void QtFileIconView::startReadDir(int _t1)
 {
-    return QIconDrag::qt_emit(_id,_o);
-}
-#ifndef QT_NO_PROPERTIES
-
-bool QtFileIconDrag::qt_property( int id, int f, QVariant* v)
-{
-    return QIconDrag::qt_property( id, f, v);
+    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))) };
+    QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 
-bool QtFileIconDrag::qt_static_property( QObject* , int , int , QVariant* ){ return FALSE; }
-#endif // QT_NO_PROPERTIES
-
-
-const char *QtFileIconView::className() const
-{
-    return "QtFileIconView";
-}
-
-QMetaObject *QtFileIconView::metaObj = 0;
-static QMetaObjectCleanUp cleanUp_QtFileIconView( "QtFileIconView", &QtFileIconView::staticMetaObject );
-
-#ifndef QT_NO_TRANSLATION
-QString QtFileIconView::tr( const char *s, const char *c )
-{
-    if ( qApp )
-	return qApp->translate( "QtFileIconView", s, c, QApplication::DefaultCodec );
-    else
-	return QString::fromLatin1( s );
-}
-#ifndef QT_NO_TRANSLATION_UTF8
-QString QtFileIconView::trUtf8( const char *s, const char *c )
-{
-    if ( qApp )
-	return qApp->translate( "QtFileIconView", s, c, QApplication::UnicodeUTF8 );
-    else
-	return QString::fromUtf8( s );
-}
-#endif // QT_NO_TRANSLATION_UTF8
-
-#endif // QT_NO_TRANSLATION
-
-QMetaObject* QtFileIconView::staticMetaObject()
-{
-    if ( metaObj )
-	return metaObj;
-    QMetaObject* parentObject = QIconView::staticMetaObject();
-    static const QUParameter param_slot_0[] = {
-	{ "dir", &static_QUType_QString, 0, QUParameter::In }
-    };
-    static const QUMethod slot_0 = {"setDirectory", 1, param_slot_0 };
-    static const QUParameter param_slot_1[] = {
-	{ "dir", &static_QUType_ptr, "QDir", QUParameter::In }
-    };
-    static const QUMethod slot_1 = {"setDirectory", 1, param_slot_1 };
-    static const QUMethod slot_2 = {"newDirectory", 0, 0 };
-    static const QUMethod slot_3 = {"cut_prev", 0, 0 };
-    static const QUMethod slot_4 = {"copy_prev", 0, 0 };
-    static const QUMethod slot_5 = {"rename_prev", 0, 0 };
-    static const QUMethod slot_6 = {"remove_prev", 0, 0 };
-    static const QUMethod slot_7 = {"update", 0, 0 };
-    static const QUMethod slot_8 = {"updateonce", 0, 0 };
-    static const QUParameter param_slot_9[] = {
-	{ "item", &static_QUType_ptr, "QIconViewItem", QUParameter::In }
-    };
-    static const QUMethod slot_9 = {"cut_fin", 1, param_slot_9 };
-    static const QUParameter param_slot_10[] = {
-	{ "item", &static_QUType_ptr, "QIconViewItem", QUParameter::In }
-    };
-    static const QUMethod slot_10 = {"copy_fin", 1, param_slot_10 };
-    static const QUParameter param_slot_11[] = {
-	{ "item", &static_QUType_ptr, "QIconViewItem", QUParameter::In }
-    };
-    static const QUMethod slot_11 = {"rename_fin", 1, param_slot_11 };
-    static const QUParameter param_slot_12[] = {
-	{ "item", &static_QUType_ptr, "QIconViewItem", QUParameter::In }
-    };
-    static const QUMethod slot_12 = {"remove_fin", 1, param_slot_12 };
-    static const QUMethod slot_13 = {"paste", 0, 0 };
-    static const QUMethod slot_14 = {"currentDir", 0, 0 };
-    static const QUMethod slot_15 = {"regupdate", 0, 0 };
-    static const QUParameter param_slot_16[] = {
-	{ "i", &static_QUType_ptr, "QIconViewItem", QUParameter::In }
-    };
-    static const QUMethod slot_16 = {"itemDoubleClicked", 1, param_slot_16 };
-    static const QUParameter param_slot_17[] = {
-	{ "e", &static_QUType_ptr, "QDropEvent", QUParameter::In },
-	{ 0, &static_QUType_ptr, "QValueList<QIconDragItem>", QUParameter::In }
-    };
-    static const QUMethod slot_17 = {"slotDropped", 2, param_slot_17 };
-    static const QUMethod slot_18 = {"viewLarge", 0, 0 };
-    static const QUMethod slot_19 = {"viewDetail", 0, 0 };
-    static const QUMethod slot_20 = {"viewBottom", 0, 0 };
-    static const QUMethod slot_21 = {"viewRight", 0, 0 };
-    static const QUMethod slot_22 = {"flowEast", 0, 0 };
-    static const QUMethod slot_23 = {"flowSouth", 0, 0 };
-    static const QUMethod slot_24 = {"itemTextTruncate", 0, 0 };
-    static const QUMethod slot_25 = {"itemTextWordWrap", 0, 0 };
-    static const QUMethod slot_26 = {"sortAscending", 0, 0 };
-    static const QUMethod slot_27 = {"sortDescending", 0, 0 };
-    static const QUMethod slot_28 = {"arrangeItemsInGrid", 0, 0 };
-    static const QUParameter param_slot_29[] = {
-	{ "item", &static_QUType_ptr, "QIconViewItem", QUParameter::In }
-    };
-    static const QUMethod slot_29 = {"slotRightPressed", 1, param_slot_29 };
-    static const QUMethod slot_30 = {"openFolder", 0, 0 };
-    static const QMetaData slot_tbl[] = {
-	{ "setDirectory(const QString&)", &slot_0, QMetaData::Public },
-	{ "setDirectory(const QDir&)", &slot_1, QMetaData::Public },
-	{ "newDirectory()", &slot_2, QMetaData::Public },
-	{ "cut_prev()", &slot_3, QMetaData::Public },
-	{ "copy_prev()", &slot_4, QMetaData::Public },
-	{ "rename_prev()", &slot_5, QMetaData::Public },
-	{ "remove_prev()", &slot_6, QMetaData::Public },
-	{ "update()", &slot_7, QMetaData::Public },
-	{ "updateonce()", &slot_8, QMetaData::Public },
-	{ "cut_fin(QIconViewItem*)", &slot_9, QMetaData::Public },
-	{ "copy_fin(QIconViewItem*)", &slot_10, QMetaData::Public },
-	{ "rename_fin(QIconViewItem*)", &slot_11, QMetaData::Public },
-	{ "remove_fin(QIconViewItem*)", &slot_12, QMetaData::Public },
-	{ "paste()", &slot_13, QMetaData::Public },
-	{ "currentDir()", &slot_14, QMetaData::Public },
-	{ "regupdate()", &slot_15, QMetaData::Private },
-	{ "itemDoubleClicked(QIconViewItem*)", &slot_16, QMetaData::Protected },
-	{ "slotDropped(QDropEvent*,const QValueList<QIconDragItem>&)", &slot_17, QMetaData::Protected },
-	{ "viewLarge()", &slot_18, QMetaData::Protected },
-	{ "viewDetail()", &slot_19, QMetaData::Protected },
-	{ "viewBottom()", &slot_20, QMetaData::Protected },
-	{ "viewRight()", &slot_21, QMetaData::Protected },
-	{ "flowEast()", &slot_22, QMetaData::Protected },
-	{ "flowSouth()", &slot_23, QMetaData::Protected },
-	{ "itemTextTruncate()", &slot_24, QMetaData::Protected },
-	{ "itemTextWordWrap()", &slot_25, QMetaData::Protected },
-	{ "sortAscending()", &slot_26, QMetaData::Protected },
-	{ "sortDescending()", &slot_27, QMetaData::Protected },
-	{ "arrangeItemsInGrid()", &slot_28, QMetaData::Protected },
-	{ "slotRightPressed(QIconViewItem*)", &slot_29, QMetaData::Protected },
-	{ "openFolder()", &slot_30, QMetaData::Protected }
-    };
-    static const QUParameter param_signal_0[] = {
-	{ 0, &static_QUType_QString, 0, QUParameter::In }
-    };
-    static const QUMethod signal_0 = {"directoryChanged", 1, param_signal_0 };
-    static const QUParameter param_signal_1[] = {
-	{ "dirs", &static_QUType_int, 0, QUParameter::In }
-    };
-    static const QUMethod signal_1 = {"startReadDir", 1, param_signal_1 };
-    static const QUMethod signal_2 = {"readNextDir", 0, 0 };
-    static const QUMethod signal_3 = {"readDirDone", 0, 0 };
-    static const QUMethod signal_4 = {"enableUp", 0, 0 };
-    static const QUMethod signal_5 = {"disableUp", 0, 0 };
-    static const QUMethod signal_6 = {"enableMkdir", 0, 0 };
-    static const QUMethod signal_7 = {"disableMkdir", 0, 0 };
-    static const QMetaData signal_tbl[] = {
-	{ "directoryChanged(const QString&)", &signal_0, QMetaData::Private },
-	{ "startReadDir(int)", &signal_1, QMetaData::Private },
-	{ "readNextDir()", &signal_2, QMetaData::Private },
-	{ "readDirDone()", &signal_3, QMetaData::Private },
-	{ "enableUp()", &signal_4, QMetaData::Private },
-	{ "disableUp()", &signal_5, QMetaData::Private },
-	{ "enableMkdir()", &signal_6, QMetaData::Private },
-	{ "disableMkdir()", &signal_7, QMetaData::Private }
-    };
-    metaObj = QMetaObject::new_metaobject(
-	"QtFileIconView", parentObject,
-	slot_tbl, 31,
-	signal_tbl, 8,
-#ifndef QT_NO_PROPERTIES
-	0, 0,
-	0, 0,
-#endif // QT_NO_PROPERTIES
-	0, 0 );
-    cleanUp_QtFileIconView.setMetaObject( metaObj );
-    return metaObj;
-}
-
-void* QtFileIconView::qt_cast( const char* clname )
-{
-    if ( !qstrcmp( clname, "QtFileIconView" ) )
-	return this;
-    return QIconView::qt_cast( clname );
-}
-
-// SIGNAL directoryChanged
-void QtFileIconView::directoryChanged( const QString& t0 )
-{
-    activate_signal( staticMetaObject()->signalOffset() + 0, t0 );
-}
-
-// SIGNAL startReadDir
-void QtFileIconView::startReadDir( int t0 )
-{
-    activate_signal( staticMetaObject()->signalOffset() + 1, t0 );
-}
-
-// SIGNAL readNextDir
+// SIGNAL 2
 void QtFileIconView::readNextDir()
 {
-    activate_signal( staticMetaObject()->signalOffset() + 2 );
+    QMetaObject::activate(this, &staticMetaObject, 2, nullptr);
 }
 
-// SIGNAL readDirDone
+// SIGNAL 3
 void QtFileIconView::readDirDone()
 {
-    activate_signal( staticMetaObject()->signalOffset() + 3 );
+    QMetaObject::activate(this, &staticMetaObject, 3, nullptr);
 }
 
-// SIGNAL enableUp
+// SIGNAL 4
 void QtFileIconView::enableUp()
 {
-    activate_signal( staticMetaObject()->signalOffset() + 4 );
+    QMetaObject::activate(this, &staticMetaObject, 4, nullptr);
 }
 
-// SIGNAL disableUp
+// SIGNAL 5
 void QtFileIconView::disableUp()
 {
-    activate_signal( staticMetaObject()->signalOffset() + 5 );
+    QMetaObject::activate(this, &staticMetaObject, 5, nullptr);
 }
 
-// SIGNAL enableMkdir
+// SIGNAL 6
 void QtFileIconView::enableMkdir()
 {
-    activate_signal( staticMetaObject()->signalOffset() + 6 );
+    QMetaObject::activate(this, &staticMetaObject, 6, nullptr);
 }
 
-// SIGNAL disableMkdir
+// SIGNAL 7
 void QtFileIconView::disableMkdir()
 {
-    activate_signal( staticMetaObject()->signalOffset() + 7 );
+    QMetaObject::activate(this, &staticMetaObject, 7, nullptr);
 }
+struct qt_meta_stringdata_DirectoryView_t {
+    const uint offsetsAndSize[14];
+    char stringdata0[74];
+};
+#define QT_MOC_LITERAL(ofs, len) \
+    uint(offsetof(qt_meta_stringdata_DirectoryView_t, stringdata0) + ofs), len 
+static const qt_meta_stringdata_DirectoryView_t qt_meta_stringdata_DirectoryView = {
+    {
+QT_MOC_LITERAL(0, 13), // "DirectoryView"
+QT_MOC_LITERAL(14, 14), // "folderSelected"
+QT_MOC_LITERAL(29, 0), // ""
+QT_MOC_LITERAL(30, 6), // "setDir"
+QT_MOC_LITERAL(37, 18), // "slotFolderSelected"
+QT_MOC_LITERAL(56, 11), // "QModelIndex"
+QT_MOC_LITERAL(68, 5) // "index"
 
-bool QtFileIconView::qt_invoke( int _id, QUObject* _o )
+    },
+    "DirectoryView\0folderSelected\0\0setDir\0"
+    "slotFolderSelected\0QModelIndex\0index"
+};
+#undef QT_MOC_LITERAL
+
+static const uint qt_meta_data_DirectoryView[] = {
+
+ // content:
+      10,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       3,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       1,       // signalCount
+
+ // signals: name, argc, parameters, tag, flags, initial metatype offsets
+       1,    1,   32,    2, 0x06,    1 /* Public */,
+
+ // slots: name, argc, parameters, tag, flags, initial metatype offsets
+       3,    1,   35,    2, 0x0a,    3 /* Public */,
+       4,    1,   38,    2, 0x09,    5 /* Protected */,
+
+ // signals: parameters
+    QMetaType::Void, QMetaType::QString,    2,
+
+ // slots: parameters
+    QMetaType::Void, QMetaType::QString,    2,
+    QMetaType::Void, 0x80000000 | 5,    6,
+
+       0        // eod
+};
+
+void DirectoryView::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    switch ( _id - staticMetaObject()->slotOffset() ) {
-    case 0: setDirectory((const QString&)static_QUType_QString.get(_o+1)); break;
-    case 1: setDirectory((const QDir&)*((const QDir*)static_QUType_ptr.get(_o+1))); break;
-    case 2: newDirectory(); break;
-    case 3: cut_prev(); break;
-    case 4: copy_prev(); break;
-    case 5: rename_prev(); break;
-    case 6: remove_prev(); break;
-    case 7: update(); break;
-    case 8: updateonce(); break;
-    case 9: cut_fin((QIconViewItem*)static_QUType_ptr.get(_o+1)); break;
-    case 10: copy_fin((QIconViewItem*)static_QUType_ptr.get(_o+1)); break;
-    case 11: rename_fin((QIconViewItem*)static_QUType_ptr.get(_o+1)); break;
-    case 12: remove_fin((QIconViewItem*)static_QUType_ptr.get(_o+1)); break;
-    case 13: paste(); break;
-    case 14: currentDir(); break;
-    case 15: regupdate(); break;
-    case 16: itemDoubleClicked((QIconViewItem*)static_QUType_ptr.get(_o+1)); break;
-    case 17: slotDropped((QDropEvent*)static_QUType_ptr.get(_o+1),(const QValueList<QIconDragItem>&)*((const QValueList<QIconDragItem>*)static_QUType_ptr.get(_o+2))); break;
-    case 18: viewLarge(); break;
-    case 19: viewDetail(); break;
-    case 20: viewBottom(); break;
-    case 21: viewRight(); break;
-    case 22: flowEast(); break;
-    case 23: flowSouth(); break;
-    case 24: itemTextTruncate(); break;
-    case 25: itemTextWordWrap(); break;
-    case 26: sortAscending(); break;
-    case 27: sortDescending(); break;
-    case 28: arrangeItemsInGrid(); break;
-    case 29: slotRightPressed((QIconViewItem*)static_QUType_ptr.get(_o+1)); break;
-    case 30: openFolder(); break;
-    default:
-	return QIconView::qt_invoke( _id, _o );
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        auto *_t = static_cast<DirectoryView *>(_o);
+        (void)_t;
+        switch (_id) {
+        case 0: _t->folderSelected((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 1: _t->setDir((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 2: _t->slotFolderSelected((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        default: ;
+        }
+    } else if (_c == QMetaObject::IndexOfMethod) {
+        int *result = reinterpret_cast<int *>(_a[0]);
+        {
+            using _t = void (DirectoryView::*)(const QString & );
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&DirectoryView::folderSelected)) {
+                *result = 0;
+                return;
+            }
+        }
     }
-    return TRUE;
 }
 
-bool QtFileIconView::qt_emit( int _id, QUObject* _o )
+const QMetaObject DirectoryView::staticMetaObject = { {
+    QMetaObject::SuperData::link<QTreeView::staticMetaObject>(),
+    qt_meta_stringdata_DirectoryView.offsetsAndSize,
+    qt_meta_data_DirectoryView,
+    qt_static_metacall,
+    nullptr,
+qt_incomplete_metaTypeArray<qt_meta_stringdata_DirectoryView_t
+, QtPrivate::TypeAndForceComplete<DirectoryView, std::true_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>
+, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QModelIndex &, std::false_type>
+
+
+>,
+    nullptr
+} };
+
+
+const QMetaObject *DirectoryView::metaObject() const
 {
-    switch ( _id - staticMetaObject()->signalOffset() ) {
-    case 0: directoryChanged((const QString&)static_QUType_QString.get(_o+1)); break;
-    case 1: startReadDir((int)static_QUType_int.get(_o+1)); break;
-    case 2: readNextDir(); break;
-    case 3: readDirDone(); break;
-    case 4: enableUp(); break;
-    case 5: disableUp(); break;
-    case 6: enableMkdir(); break;
-    case 7: disableMkdir(); break;
-    default:
-	return QIconView::qt_emit(_id,_o);
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
+}
+
+void *DirectoryView::qt_metacast(const char *_clname)
+{
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_meta_stringdata_DirectoryView.stringdata0))
+        return static_cast<void*>(this);
+    return QTreeView::qt_metacast(_clname);
+}
+
+int DirectoryView::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
+    _id = QTreeView::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 3)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 3;
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        if (_id < 3)
+            *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
+        _id -= 3;
     }
-    return TRUE;
+    return _id;
 }
-#ifndef QT_NO_PROPERTIES
 
-bool QtFileIconView::qt_property( int id, int f, QVariant* v)
+// SIGNAL 0
+void DirectoryView::folderSelected(const QString & _t1)
 {
-    return QIconView::qt_property( id, f, v);
+    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))) };
+    QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
-
-bool QtFileIconView::qt_static_property( QObject* , int , int , QVariant* ){ return FALSE; }
-#endif // QT_NO_PROPERTIES
+QT_WARNING_POP
+QT_END_MOC_NAMESPACE
