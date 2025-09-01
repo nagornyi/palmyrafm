@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PalmyraFM
+Comment=A dual-pane file manager for Linux and macOS
+Exec=palmyrafm
+Icon=palmyrafm
+Terminal=false
+Categories=System;FileManager;
+Keywords=file;manager;explorer;browser;
+StartupNotify=true
+MimeType=inode/directory;

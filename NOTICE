@@ -1,0 +1,28 @@
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+This software incorporates components from the projects listed below.
+
+Qt Framework
+=============
+
+This application uses Qt, which is available under the GNU Lesser General Public License (LGPL) version 3.
+
+Qt Framework
+Copyright (C) The Qt Company Ltd.
+Website: https://www.qt.io/
+Source Code: https://www.qt.io/download-open-source
+License: GNU Lesser General Public License v3
+License URL: https://www.gnu.org/licenses/lgpl-3.0.html
+
+Qt Documentation and Licensing Information:
+https://doc.qt.io/qt-6/licensing.html
+
+The Qt toolkit is provided under the terms of the GNU Lesser General Public License version 3 as published by the Free Software Foundation. The source code for Qt is available for download from the Qt website.
+
+In accordance with the LGPL v3 license, users have the right to:
+- Use the Qt libraries in this application
+- Modify the Qt libraries (source code available separately)
+- Redistribute the application with Qt libraries included
+
+For the complete LGPL v3 license text, please visit:
+https://www.gnu.org/licenses/lgpl-3.0.html
