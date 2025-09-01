@@ -19,17 +19,27 @@ unix:!macx {
         PREFIX = /usr/local
     }
     
-    target.path = $$PREFIX/bin
-    desktop.path = /usr/share/applications
-    desktop.files = palmyrafm.desktop
-    icon.path = /usr/share/pixmaps
-    icon.files = icons/palmyrafm.png
+    # Don't use default INSTALLS mechanism to avoid directory cleanup issues
+    # Instead, implement custom install/uninstall targets
     
-    INSTALLS += target desktop icon
+    # Custom install target
+    install.target = install
+    install.commands = \
+        /usr/lib/qt6/bin/qmake -install qinstall -exe palmyrafm $$PREFIX/bin/palmyrafm && \
+        strip $$PREFIX/bin/palmyrafm && \
+        /usr/lib/qt6/bin/qmake -install qinstall palmyrafm.desktop /usr/share/applications/palmyrafm.desktop && \
+        /usr/lib/qt6/bin/qmake -install qinstall icons/palmyrafm.png /usr/share/pixmaps/palmyrafm.png
+    install.CONFIG += phony
     
-    # Uninstall target
-    uninstall.commands = rm -f $$PREFIX/bin/palmyrafm && rm -f /usr/share/applications/palmyrafm.desktop && rm -f /usr/share/pixmaps/palmyrafm.png
-    QMAKE_EXTRA_TARGETS += uninstall
+    # Custom uninstall target
+    uninstall.target = uninstall
+    uninstall.commands = \
+        rm -f $$PREFIX/bin/palmyrafm && \
+        rm -f /usr/share/applications/palmyrafm.desktop && \
+        rm -f /usr/share/pixmaps/palmyrafm.png
+    uninstall.CONFIG += phony
+    
+    QMAKE_EXTRA_TARGETS += install uninstall
 }
 
 # macOS specific settings
