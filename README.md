@@ -101,7 +101,7 @@ git clone https://github.com/nagornyi/palmyrafm.git
 cd palmyrafm
 
 # Generate icon (optional - PNG files included in repository)
-# Uncomment the following lines if you want to regenerate the icon:
+# The commented steps are only needed if you want to regenerate the icon:
 # sudo apt install inkscape  # Ubuntu/Debian
 # sudo dnf install inkscape  # Fedora
 # sudo zypper install inkscape  # openSUSE
@@ -222,7 +222,7 @@ export PATH="/opt/homebrew/opt/qt@6/bin:$PATH"
 
 ```bash
 # Generate icon (optional - PNG and ICNS files included in repository)
-# Uncomment the following lines if you want to regenerate the icons:
+# The commented steps are only needed if you want to regenerate the icons:
 # brew install inkscape  # macOS with Homebrew
 # or: sudo port install inkscape +universal  # macOS with MacPorts
 # inkscape icons/palmyrafm.svg --export-png=icons/palmyrafm.png --export-width=512 --export-height=512
@@ -252,9 +252,11 @@ sudo make install
 # This copies palmyrafm.app to /Applications/
 # The app will then be available in Launchpad and Applications folder
 
-# Uninstall the application
+# Uninstall the application (removes completely)
 sudo make uninstall
 ```
+
+**Note:** On macOS, the installation process only installs the app bundle to `/Applications/`. Desktop entries are not used on macOS as they are on Linux systems. The app will appear in Launchpad and the Applications folder after installation. The uninstall process cleanly removes only the application without affecting system directories.
 
 #### Build Notes for macOS
 

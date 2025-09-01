@@ -2,8 +2,13 @@
 *.o
 moc_*
 moc_predefs.h
+qrc_*.cpp
 Makefile
 .qmake.stash
 
 # Executable
 palmyrafm
+palmyrafm.app
+
+# MacOS specific
+.DS_Store

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RCC version="1.0">
+    <qresource prefix="/icons">
+        <file>icons/palmyrafm.png</file>
+        <file>icons/palmyrafm.svg</file>
+        <file>icons/palmyrafm-16.png</file>
+        <file>icons/palmyrafm-32.png</file>
+        <file>icons/palmyrafm-48.png</file>
+        <file>icons/palmyrafm-128.png</file>
+        <file>icons/palmyrafm-256.png</file>
+    </qresource>
+</RCC>

@@ -42,6 +42,12 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QThread>
+#include <QDialog>
+#include <QTabWidget>
+#include <QTextEdit>
+#include <QTextBrowser>
+#include <QPushButton>
+#include <QHBoxLayout>
 #include <cstdlib>
 
 /*****************************************************************************
@@ -526,41 +532,123 @@ void FileMainWindow::updateonce()
 
 void FileMainWindow::about()
 {
-    QString aboutText = 
-        "<h3>Palmyra File Manager</h3>"
-        "<p><b>Version:</b> 1.0</p>"
-        "<p><b>Description:</b> A dual-pane file manager for Linux</p>"
-        "<p><b>Copyright:</b> © Artem Nagornyi, 2025</p>"
-        "<hr>"
-        "<p><b>Key Bindings:</b></p>"
-        "<table cellpadding='3'>"
-        "<tr><td><b>Backspace</b></td><td>Go up directory</td></tr>"
-        "<tr><td><b>Enter</b></td><td>Enter directory/Open file</td></tr>"
-        "<tr><td><b>F7</b></td><td>Create new directory</td></tr>"
-        "<tr><td><b>F8</b></td><td>Delete files</td></tr>"
-        "<tr><td><b>Shift+Del</b></td><td>Delete files</td></tr>"
-        "<tr><td><b>Ctrl+C</b></td><td>Copy files</td></tr>"
-        "<tr><td><b>Ctrl+X</b></td><td>Cut files</td></tr>"
+    QDialog aboutDialog(this);
+    aboutDialog.setWindowTitle("About PalmyraFM");
+    aboutDialog.setFixedSize(550, 450);
+    
+    QVBoxLayout *mainLayout = new QVBoxLayout(&aboutDialog);
+    mainLayout->setSpacing(15);
+    
+    // Header with icon and title - centered
+    QVBoxLayout *headerLayout = new QVBoxLayout();
+    headerLayout->setAlignment(Qt::AlignCenter);
+    
+    // Application icon - centered
+    QLabel *iconLabel = new QLabel();
+    iconLabel->setAlignment(Qt::AlignCenter);
+    QPixmap iconPixmap(":/icons/icons/palmyrafm.png");
+    if (iconPixmap.isNull()) {
+        iconPixmap.load("icons/palmyrafm.png");
+    }
+    if (!iconPixmap.isNull()) {
+        iconLabel->setPixmap(iconPixmap.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
+    headerLayout->addWidget(iconLabel);
+    
+    // Title and basic info - centered
+    QLabel *titleLabel = new QLabel("<h2>PalmyraFM</h2>");
+    titleLabel->setAlignment(Qt::AlignCenter);
+    QLabel *versionLabel = new QLabel("<b>Version:</b> 1.0");
+    versionLabel->setAlignment(Qt::AlignCenter);
+    QLabel *descLabel = new QLabel("A dual-pane file manager for Linux and macOS");
+    descLabel->setAlignment(Qt::AlignCenter);
+    QLabel *copyrightLabel = new QLabel("© Artem Nagornyi, 2025");
+    copyrightLabel->setAlignment(Qt::AlignCenter);
+    
+    headerLayout->addWidget(titleLabel);
+    headerLayout->addWidget(versionLabel);
+    headerLayout->addWidget(descLabel);
+    headerLayout->addWidget(copyrightLabel);
+    
+    mainLayout->addLayout(headerLayout);
+    
+    // Tab widget for organized sections
+    QTabWidget *tabWidget = new QTabWidget();
+    
+    // Keyboard shortcuts tab - complete list
+    QWidget *shortcutsTab = new QWidget();
+    QVBoxLayout *shortcutsLayout = new QVBoxLayout(shortcutsTab);
+    QTextBrowser *shortcutsText = new QTextBrowser();
+    shortcutsText->setReadOnly(true);
+    shortcutsText->setMaximumHeight(300);  // Limit height to ensure scrollability
+    shortcutsText->setHtml(
+        "<table cellpadding='4' cellspacing='2'>"
+        "<tr><td><b>F1</b></td><td>Show this About dialog</td></tr>"
+        "<tr><td><b>Home</b></td><td>Go to home directory</td></tr>"
+        "<tr><td><b>Backspace</b></td><td>Go up directory</td></tr>"        
+        "<tr><td><b>F7</b></td><td>Create new directory</td></tr>"    
+        "<tr><td><b>Ctrl+X</b></td><td>Cut selected files</td></tr>"
+        "<tr><td><b>Ctrl+C</b></td><td>Copy selected files</td></tr>"        
         "<tr><td><b>Ctrl+V</b></td><td>Paste files</td></tr>"
-        "<tr><td><b>Shift+Insert</b></td><td>Paste files</td></tr>"
-        "<tr><td><b>F1</b></td><td>About dialog</td></tr>"
+        "<tr><td><b>F8</b></td><td>Delete selected files</td></tr>"
+        "<tr><td><b>Shift+Delete</b></td><td>Delete selected files</td></tr>"
         "<tr><td><b>F10</b></td><td>Exit application</td></tr>"
+        "<tr><td><b>Enter</b></td><td>Enter directory / Open file</td></tr>"
         "</table>"
-        "<hr>"
+    );
+    shortcutsLayout->addWidget(shortcutsText);
+    tabWidget->addTab(shortcutsTab, "Keyboard Shortcuts");
+    
+    // License tab
+    QWidget *licenseTab = new QWidget();
+    QVBoxLayout *licenseLayout = new QVBoxLayout(licenseTab);
+    QTextBrowser *licenseText = new QTextBrowser();
+    licenseText->setReadOnly(true);
+    licenseText->setOpenExternalLinks(true);  // Enable link opening
+    licenseText->setHtml(
         "<p><b>License:</b> GNU General Public License v3.0</p>"
         "<p>This program is free software: you can redistribute it and/or modify it "
         "under the terms of the GNU General Public License as published by the "
         "Free Software Foundation, either version 3 of the License, or (at your option) "
         "any later version.</p>"
-        "<p>For the complete license text, visit: "
-        "<a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a></p>";
+        "<p>For the complete license text, visit:<br>"
+        "<a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a></p>"
+    );
+    licenseLayout->addWidget(licenseText);
+    tabWidget->addTab(licenseTab, "License");
     
-    QMessageBox aboutBox(this);
-    aboutBox.setWindowTitle("About Palmyra File Manager");
-    aboutBox.setTextFormat(Qt::RichText);
-    aboutBox.setText(aboutText);
-    aboutBox.setIcon(QMessageBox::Information);
-    aboutBox.exec();
+    // Qt Framework tab
+    QWidget *qtTab = new QWidget();
+    QVBoxLayout *qtLayout = new QVBoxLayout(qtTab);
+    QTextBrowser *qtText = new QTextBrowser();
+    qtText->setReadOnly(true);
+    qtText->setOpenExternalLinks(true);  // Enable link opening
+    qtText->setHtml(
+        "<p><b>Qt Framework:</b></p>"
+        "<p>This application uses the Qt framework under the GNU Lesser General Public License (LGPL) v3.</p>"
+        "<p>Qt is a cross-platform application framework developed by The Qt Company.</p>"
+        "<p><b>Qt Source Code:</b><br>"
+        "<a href='https://www.qt.io/download-open-source'>https://www.qt.io/download-open-source</a></p>"
+        "<p><b>Qt Licensing Information:</b><br>"
+        "<a href='https://doc.qt.io/qt-6/licensing.html'>https://doc.qt.io/qt-6/licensing.html</a></p>"
+        "<p><b>LGPL v3 License:</b><br>"
+        "<a href='https://www.gnu.org/licenses/lgpl-3.0.html'>https://www.gnu.org/licenses/lgpl-3.0.html</a></p>"
+    );
+    qtLayout->addWidget(qtText);
+    tabWidget->addTab(qtTab, "Qt Framework");
+    
+    mainLayout->addWidget(tabWidget);
+    
+    // Close button
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    QPushButton *closeButton = new QPushButton("Close");
+    closeButton->setMinimumWidth(80);
+    connect(closeButton, &QPushButton::clicked, &aboutDialog, &QDialog::accept);
+    buttonLayout->addWidget(closeButton);
+    mainLayout->addLayout(buttonLayout);
+    
+    aboutDialog.exec();
 }
 
 void FileMainWindow::changePath(const QString &path)
