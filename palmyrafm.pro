@@ -11,8 +11,10 @@ SOURCES = main.cpp \
           palmyrafm.cpp \
           dirview.cpp
 
-# Installation targets for Linux/Unix
-unix {
+RESOURCES = palmyrafm.qrc
+
+# Installation targets for Linux/Unix (excluding macOS)
+unix:!macx {
     isEmpty(PREFIX) {
         PREFIX = /usr/local
     }
@@ -37,13 +39,25 @@ macx {
     # App bundle configuration
     ICON = icons/palmyrafm.icns
     
-    # Installation targets for macOS
+    # Installation targets for macOS - custom implementation
     isEmpty(PREFIX) {
         PREFIX = /Applications
     }
     
-    target.path = $$PREFIX
-    INSTALLS += target
+    # Don't use default INSTALLS mechanism to avoid directory cleanup issues
+    # Instead, implement custom install/uninstall targets
+    
+    # Custom install target
+    install.target = install
+    install.commands = rm -rf $$PREFIX/palmyrafm.app && \
+                      /opt/local/libexec/qt6/bin/qmake -install qinstall palmyrafm.app $$PREFIX/palmyrafm.app && \
+                      strip $$PREFIX/palmyrafm.app/Contents/MacOS/palmyrafm
+    install.CONFIG += phony
+    
+    # Custom uninstall target
+    uninstall.target = uninstall
+    uninstall.commands = rm -rf $$PREFIX/palmyrafm.app
+    uninstall.CONFIG += phony
     
     # Create .icns from PNG (requires iconutil)
     icns.commands = mkdir -p palmyrafm.iconset && \
@@ -59,8 +73,5 @@ macx {
                    iconutil -c icns palmyrafm.iconset -o icons/palmyrafm.icns && \
                    rm -rf palmyrafm.iconset
     
-    # Uninstall target for macOS
-    uninstall.commands = rm -rf $$PREFIX/palmyrafm.app
-    
-    QMAKE_EXTRA_TARGETS += icns uninstall
+    QMAKE_EXTRA_TARGETS += icns install uninstall
 }
