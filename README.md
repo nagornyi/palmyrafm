@@ -112,8 +112,8 @@ qmake palmyrafm.pro
 # Alternative: use full path if qmake is not in PATH
 # /usr/lib/qt6/bin/qmake palmyrafm.pro
 
-# Build with multiple cores for faster compilation
-make -j$(nproc)
+# Build the application
+make
 
 # Run the application
 ./palmyrafm
