@@ -21,11 +21,15 @@
 #include <QStringList>
 #include <QPixmap>
 #include <QMimeData>
+#include <QAbstractItemModel>
+#include <QAbstractItemView>
 #include <QDrag>
 #include <QMessageBox>
 #include <QKeyEvent>
+#include <QEvent>
 #include <QMenu>
 #include <QCursor>
+#include <QMouseEvent>
 #include <QTransform>
 #include <QProcess>
 #include <QObject>
@@ -42,12 +46,16 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QThread>
+#include <QRegularExpression>
 #include <QDialog>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QTextBrowser>
 #include <QPushButton>
 #include <QHBoxLayout>
+#include <QItemSelection>
+#include <QItemSelectionModel>
+#include <QSortFilterProxyModel>
 #include <cstdlib>
 
 /*****************************************************************************
@@ -57,7 +65,7 @@
  *****************************************************************************/
 
 FileMainWindow::FileMainWindow() 
-: QMainWindow(), isCutOperation(false)
+: QMainWindow(), leftPaneSelectedRow(0), rightPaneSelectedRow(0), isCutOperation(false)
 {
     setup();
 }
@@ -69,31 +77,98 @@ void FileMainWindow::show()
 
 void FileMainWindow::setup()
 {
-    // Create central splitter widget
-    QSplitter *splitter = new QSplitter(this);
+    // Create central container widget for path displays and panes
+    QWidget *centralWidget = new QWidget(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(2, 2, 2, 2);
+    mainLayout->setSpacing(2);
     
-    // Create directory tree view (left panel)
-    dirlist = new DirectoryView(splitter, true);
+    // Create horizontal splitter for panes
+    QSplitter *splitter = new QSplitter(Qt::Horizontal);
     
-    // Create file list view (right panel) 
-    fileview = new QtFileIconView("/", splitter);
-    fileview->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    fileview->setFocus(); // Set initial focus to file view
+    // Create left pane layout with path display
+    QWidget *leftContainer = new QWidget;
+    QVBoxLayout *leftLayout = new QVBoxLayout(leftContainer);
+    leftLayout->setContentsMargins(0, 0, 0, 0);
+    leftLayout->setSpacing(2);
+    
+    leftPathEdit = new QLineEdit;
+    leftPathEdit->setReadOnly(true);
+    leftPathEdit->setClearButtonEnabled(false);
+    leftPathEdit->setToolTip("Current directory in left pane");
+    leftLayout->addWidget(leftPathEdit);
+    
+    leftPane = new QtFileIconView(QDir::homePath(), leftContainer);
+    leftPane->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    leftPane->installEventFilter(this);
+    leftPane->setContextMenuPolicy(Qt::NoContextMenu);
+    leftLayout->addWidget(leftPane);
+    
+    // Create right pane layout with path display
+    QWidget *rightContainer = new QWidget;
+    QVBoxLayout *rightLayout = new QVBoxLayout(rightContainer);
+    rightLayout->setContentsMargins(0, 0, 0, 0);
+    rightLayout->setSpacing(2);
+    
+    rightPathEdit = new QLineEdit;
+    rightPathEdit->setReadOnly(true);
+    rightPathEdit->setClearButtonEnabled(false);
+    rightPathEdit->setToolTip("Current directory in right pane");
+    rightLayout->addWidget(rightPathEdit);
+    
+    rightPane = new QtFileIconView(QDir::homePath(), rightContainer);
+    rightPane->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    rightPane->installEventFilter(this);
+    rightPane->setContextMenuPolicy(Qt::NoContextMenu);
+    rightLayout->addWidget(rightPane);
+
+    // Add containers to splitter
+    splitter->addWidget(leftContainer);
+    splitter->addWidget(rightContainer);
+    
+    // Add splitter to main layout and set as central widget
+    mainLayout->addWidget(splitter);
+    setCentralWidget(centralWidget);
+    
+    // Track selection changes to maintain row indices per pane
+    if (leftPane->selectionModel()) {
+        connect(leftPane->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, [this](const QItemSelection &, const QItemSelection &) {
+                    QModelIndexList rows = leftPane->selectionModel()->selectedRows();
+                    if (!rows.isEmpty()) {
+                        leftPaneSelectedRow = rows.first().row();
+                    }
+                });
+    }
+    if (rightPane->selectionModel()) {
+        connect(rightPane->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, [this](const QItemSelection &, const QItemSelection &) {
+                    QModelIndexList rows = rightPane->selectionModel()->selectedRows();
+                    if (!rows.isEmpty()) {
+                        rightPaneSelectedRow = rows.first().row();
+                    }
+                });
+    }
+    
+    // Set equal sizes for both panes
+    splitter->setSizes(QList<int>() << 1 << 1);
+    
+    // Set left pane as initially active
+    activePane = leftPane;
+    leftPane->setFocus();
+    
+    // Connect click events to track active pane
+    connect(leftPane, &QTreeView::clicked, this, &FileMainWindow::leftPaneClicked);
+    connect(rightPane, &QTreeView::clicked, this, &FileMainWindow::rightPaneClicked);
+    
+    // Connect directory changed signals
+    connect(leftPane, &QtFileIconView::directoryChanged, this, &FileMainWindow::leftPaneDirectoryChanged);
+    connect(rightPane, &QtFileIconView::directoryChanged, this, &FileMainWindow::rightPaneDirectoryChanged);
     
     setCentralWidget(splitter);
     
     // Create toolbar
     QToolBar *toolbar1 = addToolBar("Operations");
-    
-    // About button
-    QToolButton *aboutButton = new QToolButton();
-    aboutButton->setText("About");
-    aboutButton->setToolTip("About Palmyra File Manager");
-    aboutButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
-    connect(aboutButton, &QToolButton::clicked, this, &FileMainWindow::about);
-    toolbar1->addWidget(aboutButton);
-    
-    toolbar1->addSeparator();
     
     // Home button
     QToolButton *homeButton = new QToolButton();
@@ -152,6 +227,24 @@ void FileMainWindow::setup()
     
     toolbar1->addSeparator();
     
+    // Appearance button
+    QToolButton *appearanceButton = new QToolButton();
+    appearanceButton->setText("Appearance");
+    appearanceButton->setToolTip("Change color theme");
+    appearanceButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
+    connect(appearanceButton, &QToolButton::clicked, this, &FileMainWindow::showAppearanceMenu);
+    toolbar1->addWidget(appearanceButton);
+    
+    // About button
+    QToolButton *aboutButton = new QToolButton();
+    aboutButton->setText("About");
+    aboutButton->setToolTip("About Palmyra File Manager");
+    aboutButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
+    connect(aboutButton, &QToolButton::clicked, this, &FileMainWindow::about);
+    toolbar1->addWidget(aboutButton);
+    
+    toolbar1->addSeparator();
+    
     // Exit button
     QToolButton *exitButton = new QToolButton();
     exitButton->setText("Exit");
@@ -160,101 +253,191 @@ void FileMainWindow::setup()
     connect(exitButton, &QToolButton::clicked, this, &QWidget::close);
     toolbar1->addWidget(exitButton);
     
-    // Path toolbar
-    QToolBar *pathToolbar = addToolBar("Path");
-    pathToolbar->addWidget(new QLabel("Path: "));
-    
-    pathCombo = new QComboBox();
-    pathCombo->setEditable(true);
-    pathCombo->setMinimumWidth(300);
-    pathCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    pathCombo->setInsertPolicy(QComboBox::NoInsert);
-    
-    // Connect path navigation
-    connect(pathCombo, QOverload<const QString &>::of(&QComboBox::textActivated),
-            this, &FileMainWindow::changePath);
-    connect(pathCombo->lineEdit(), &QLineEdit::returnPressed,
-            this, &FileMainWindow::pathEditFinished);
-    
-    pathToolbar->addWidget(pathCombo);
-    
-    // Connect signals - use overloaded function pointers to resolve ambiguity
-    connect(dirlist, &DirectoryView::folderSelected,
-            fileview, QOverload<const QString &>::of(&QtFileIconView::setDirectory));
-    connect(fileview, &QtFileIconView::directoryChanged,
-            this, &FileMainWindow::directoryChanged);
+    // We no longer need a separate path toolbar as path displays are now above each pane
     
     // Status bar
     label = new QLabel(statusBar());
     statusBar()->addWidget(label);
     progress = new QProgressBar(statusBar());
     statusBar()->addWidget(progress);
+    
+    // Apply default theme after all widgets are created
+    currentTheme = "Default";
+    applyTheme(currentTheme);
+    
+    // Select first row in active pane
+    QTimer::singleShot(0, this, [this]() {
+        if (activePane && activePane->model()->rowCount() > 0) {
+            QModelIndex index = activePane->model()->index(0, 0);
+            activePane->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+            leftPaneSelectedRow = 0;
+        }
+    });
 }
 
 void FileMainWindow::setPathCombo()
 {
-    QString dir = windowTitle();
-    pathCombo->clear();
+    if (!activePane) return;
     
-    // Add current directory
-    pathCombo->addItem(dir);
+    QString dir = activePane->currentDir().absolutePath();
+
+    // Update the appropriate path edit based on which pane is active
+    QLineEdit *activePathEdit = (activePane == leftPane) ? leftPathEdit : rightPathEdit;
+    QLineEdit *inactivePathEdit = (activePane == leftPane) ? rightPathEdit : leftPathEdit;
     
-    // Add parent directories for quick navigation
-    QDir currentDir(dir);
-    QString parentPath = currentDir.absolutePath();
-    while (currentDir.cdUp()) {
-        parentPath = currentDir.absolutePath();
-        if (parentPath != dir && parentPath != "/") {
-            pathCombo->addItem(parentPath);
-        }
-        if (parentPath == "/") {
-            pathCombo->addItem("/");
-            break;
-        }
-    }
+    // Set text and colors for path edits
+    activePathEdit->setText(dir);
+    activePathEdit->setStyleSheet(QString("QLineEdit { background-color: %1; color: %2; border: 1px solid %3; }")
+                                 .arg(activePathColor, pathTextColor, pathBorderColor));
     
-    pathCombo->setCurrentIndex(0);
-    pathCombo->setToolTip(QString("Current path: %1\nClick dropdown for parent directories").arg(dir));
-    
-    // Set the line edit text to show the full path
-    pathCombo->lineEdit()->setText(dir);
-    pathCombo->lineEdit()->setCursorPosition(pathCombo->lineEdit()->text().length());
+    inactivePathEdit->setStyleSheet(QString("QLineEdit { background-color: %1; color: %2; border: 1px solid %3; }")
+                                   .arg(inactivePathColor, pathTextColor, pathBorderColor));
 }
 
-void FileMainWindow::directoryChanged(const QString &dir)
+void FileMainWindow::activatePane(QtFileIconView *targetPane, int &targetSelectedRow, const QModelIndex &requestedIndex)
 {
-    setWindowTitle(dir);
+    if (!targetPane) {
+        return;
+    }
+
+    if (activePane && activePane != targetPane) {
+        QItemSelectionModel *previousSelectionModel = activePane->selectionModel();
+        if (previousSelectionModel) {
+            QModelIndexList previousRows = previousSelectionModel->selectedRows();
+            if (!previousRows.isEmpty()) {
+                int storedRow = previousRows.first().row();
+                if (activePane == leftPane) {
+                    leftPaneSelectedRow = storedRow;
+                } else if (activePane == rightPane) {
+                    rightPaneSelectedRow = storedRow;
+                }
+            }
+        }
+    }
+
+    activePane = targetPane;
+    activePane->setFocus();
+    
+    // Update pane styles to show active/inactive state
+    updatePaneStyles();
+
+    QAbstractItemModel *model = targetPane->model();
+    QItemSelectionModel *selectionModel = targetPane->selectionModel();
+
+    if (!model || !selectionModel) {
+        setPathCombo();
+        return;
+    }
+
+    int rowCount = model->rowCount();
+    if (rowCount == 0) {
+        selectionModel->clearSelection();
+        targetSelectedRow = -1;
+        setPathCombo();
+        return;
+    }
+
+    QModelIndex indexToUse = requestedIndex;
+
+    if (!indexToUse.isValid()) {
+        QModelIndexList currentSelection = selectionModel->selectedRows();
+        if (!currentSelection.isEmpty()) {
+            indexToUse = currentSelection.first();
+        } else {
+            int desiredRow = targetSelectedRow;
+            if (desiredRow < 0 || desiredRow >= rowCount) {
+                desiredRow = 0;
+            }
+            indexToUse = model->index(desiredRow, 0);
+        }
+    }
+
+    if (indexToUse.isValid()) {
+        targetSelectedRow = indexToUse.row();
+        selectionModel->select(indexToUse, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+        selectionModel->setCurrentIndex(indexToUse, QItemSelectionModel::NoUpdate);
+        targetPane->setCurrentIndex(indexToUse);
+        targetPane->scrollTo(indexToUse, QAbstractItemView::EnsureVisible);
+    }
+
     setPathCombo();
 }
 
-void FileMainWindow::slotStartReadDir(int dirs)
+void FileMainWindow::leftPaneClicked(const QModelIndex &index)
 {
-    progress->setMaximum(dirs);
-    progress->setValue(0);
+    activatePane(leftPane, leftPaneSelectedRow, index);
 }
 
-void FileMainWindow::slotReadNextDir()
+void FileMainWindow::rightPaneClicked(const QModelIndex &index)
 {
-    progress->setValue(progress->value() + 1);
+    activatePane(rightPane, rightPaneSelectedRow, index);
 }
 
-void FileMainWindow::slotReadDirDone()
+void FileMainWindow::leftPaneDirectoryChanged(const QString &dir)
 {
-    progress->setValue(progress->maximum());
+    // Always update the left path display
+    leftPathEdit->setText(dir);
+    
+    if (activePane == leftPane) {
+        setWindowTitle(dir);
+        setPathCombo();
+    }
+    // Reset selection to first item on directory change
+    leftPaneSelectedRow = 0;
+    QTimer::singleShot(0, this, [this]() {
+        if (leftPane->model()->rowCount() > 0) {
+            QModelIndex index = leftPane->model()->index(0, 0);
+            if (activePane == leftPane) {
+                leftPane->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+            }
+        } else {
+            leftPaneSelectedRow = -1;
+            if (leftPane->selectionModel()) {
+                leftPane->selectionModel()->clearSelection();
+            }
+        }
+    });
+}
+
+void FileMainWindow::rightPaneDirectoryChanged(const QString &dir)
+{
+    // Always update the right path display
+    rightPathEdit->setText(dir);
+    
+    if (activePane == rightPane) {
+        setWindowTitle(dir);
+        setPathCombo();
+    }
+    // Reset selection to first item on directory change
+    rightPaneSelectedRow = 0;
+    QTimer::singleShot(0, this, [this]() {
+        if (rightPane->model()->rowCount() > 0) {
+            QModelIndex index = rightPane->model()->index(0, 0);
+            if (activePane == rightPane) {
+                rightPane->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+            }
+        } else {
+            rightPaneSelectedRow = -1;
+            if (rightPane->selectionModel()) {
+                rightPane->selectionModel()->clearSelection();
+            }
+        }
+    });
 }
 
 void FileMainWindow::cdUp()
 {
-    QString currentPath = fileview->currentDir().absolutePath();
+    if (!activePane) return;
+    QString currentPath = activePane->currentDir().absolutePath();
     QDir parent = QDir(currentPath).absolutePath();
     parent.cdUp();
-    fileview->setDirectory(parent.absolutePath());
+    activePane->setDirectory(parent.absolutePath());
 }
 
 void FileMainWindow::goHome()
 {
     QString homePath = QDir::homePath();
-    fileview->setDirectory(homePath);
+    activePane->setDirectory(homePath);
 }
 
 void FileMainWindow::newFolder()
@@ -264,12 +447,12 @@ void FileMainWindow::newFolder()
                                        "Enter folder name:", QLineEdit::Normal, 
                                        "New Folder", &ok);
     if (ok && !name.isEmpty()) {
-        QString currentPath = fileview->currentDir().absolutePath();
+        QString currentPath = activePane->currentDir().absolutePath();
         QString newFolderPath = currentPath + "/" + name;
         
         QDir dir;
         if (dir.mkpath(newFolderPath)) {
-            fileview->updateonce();
+            activePane->viewport()->update();
             QMessageBox::information(this, "Success", "Folder created successfully!");
         } else {
             QMessageBox::warning(this, "Error", "Failed to create folder!");
@@ -279,18 +462,22 @@ void FileMainWindow::newFolder()
 
 void FileMainWindow::cut()
 {
-    QModelIndexList selected = fileview->selectionModel()->selectedIndexes();
+    QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
         QMessageBox::information(this, "Cut", "No files selected!");
         return;
     }
     
     copiedFiles.clear();
-    QFileSystemModel* model = qobject_cast<QFileSystemModel*>(fileview->model());
+    QFileSystemModel* model = activePane->fileSystemModel();
     
     for (const QModelIndex &index : selected) {
         if (index.column() == 0) { // Only process the first column to avoid duplicates
-            QString filePath = model->filePath(index);
+            QModelIndex sourceIndex = activePane->mapToSource(index);
+            if (!sourceIndex.isValid()) {
+                continue;
+            }
+            QString filePath = model->filePath(sourceIndex);
             copiedFiles << filePath;
         }
     }
@@ -312,18 +499,22 @@ void FileMainWindow::cut()
 
 void FileMainWindow::copy()
 {
-    QModelIndexList selected = fileview->selectionModel()->selectedIndexes();
+    QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
         QMessageBox::information(this, "Copy", "No files selected!");
         return;
     }
     
     copiedFiles.clear();
-    QFileSystemModel* model = qobject_cast<QFileSystemModel*>(fileview->model());
+    QFileSystemModel* model = activePane->fileSystemModel();
     
     for (const QModelIndex &index : selected) {
         if (index.column() == 0) { // Only process the first column to avoid duplicates
-            QString filePath = model->filePath(index);
+            QModelIndex sourceIndex = activePane->mapToSource(index);
+            if (!sourceIndex.isValid()) {
+                continue;
+            }
+            QString filePath = model->filePath(sourceIndex);
             copiedFiles << filePath;
         }
     }
@@ -350,7 +541,7 @@ void FileMainWindow::paste()
         return;
     }
     
-    QString targetDir = fileview->currentDir().absolutePath();
+    QString targetDir = activePane->currentDir().absolutePath();
     
     // Create progress dialog
     QProgressDialog *progressDialog = new QProgressDialog(this);
@@ -431,7 +622,7 @@ void FileMainWindow::paste()
             copiedFiles.clear(); // Clear after successful move
         }
         
-        fileview->updateonce();
+        activePane->viewport()->update();
     }
 }
 
@@ -442,18 +633,22 @@ void FileMainWindow::rename()
 
 void FileMainWindow::remove()
 {
-    QModelIndexList selected = fileview->selectionModel()->selectedIndexes();
+    QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
         QMessageBox::information(this, "Delete", "No files selected!");
         return;
     }
     
     QStringList filesToDelete;
-    QFileSystemModel* model = qobject_cast<QFileSystemModel*>(fileview->model());
+    QFileSystemModel* model = activePane->fileSystemModel();
     
     for (const QModelIndex &index : selected) {
         if (index.column() == 0) { // Only process the first column to avoid duplicates
-            QString filePath = model->filePath(index);
+            QModelIndex sourceIndex = activePane->mapToSource(index);
+            if (!sourceIndex.isValid()) {
+                continue;
+            }
+            QString filePath = model->filePath(sourceIndex);
             filesToDelete << filePath;
         }
     }
@@ -516,18 +711,430 @@ void FileMainWindow::remove()
     
     if (success) {
         label->setText(QString("Successfully deleted %1 file(s)").arg(processed));
-        fileview->updateonce();
+        activePane->viewport()->update();
     }
 }
 
-void FileMainWindow::update()
+void FileMainWindow::showAppearanceMenu()
 {
-    fileview->updateonce();
+    QMenu *menu = new QMenu(this);
+    
+    // Create theme actions
+    QStringList themes;
+    themes << "Default" << "Dark Blue" << "MC Classic" << "Sand" 
+           << "Modarcon16" << "Dark Green" << "Nicedark" << "Gotar";
+    
+    for (const QString &theme : themes) {
+        QAction *action = menu->addAction(theme);
+        action->setCheckable(true);
+        action->setChecked(theme == currentTheme);
+        connect(action, &QAction::triggered, this, [this, theme]() {
+            currentTheme = theme;
+            applyTheme(theme);
+        });
+    }
+    
+    // Show menu at cursor position
+    menu->exec(QCursor::pos());
+    delete menu;
 }
 
-void FileMainWindow::updateonce()
+void FileMainWindow::applyTheme(const QString &themeName)
 {
-    fileview->updateonce();
+    QString paneStyle;
+    QString paneBackground = "#d3d3d3";
+    QString paneTextColor = "#000000";
+    QString selectionBackground = "#0078d7";
+    QString selectionForeground = "#ffffff";
+    
+    // Path display colors - default to lighter/darker versions of pane colors
+    activePathColor = "#f0f0f0";      // Lighter than pane for active
+    inactivePathColor = "#c0c0c0";    // Darker than pane for inactive
+    pathTextColor = "#000000";        // Same as pane text
+    pathBorderColor = "#808080";      // Same as pane border
+    
+    if (themeName == "Default") {
+        // Default theme - light gray background, black text
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #d3d3d3;"
+            "   color: #000000;"
+            "   alternate-background-color: #c0c0c0;"
+            "   selection-background-color: #0078d7;"
+            "   selection-color: #ffffff;"
+            "   border: 1px solid #808080;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #a0a0a0;"
+            "   color: #000000;"
+            "   padding: 4px;"
+            "   border: 1px solid #808080;"
+            "}";
+        paneBackground = "#d3d3d3";
+        paneTextColor = "#000000";
+        selectionBackground = "#0078d7";
+        selectionForeground = "#ffffff";
+        
+        // Path colors for Default theme
+        activePathColor = "#f0f0f0";
+        inactivePathColor = "#c0c0c0";
+        pathTextColor = "#000000";
+        pathBorderColor = "#808080";
+        
+        // File type colors for Default theme
+        fileColorDir = "#0000FF";        // Blue for directories
+        fileColorExec = "#00AA00";       // Green for executables
+        fileColorArchive = "#AA0000";    // Red for archives
+        fileColorImage = "#AA00AA";      // Magenta for images
+        fileColorVideo = "#00AAAA";      // Cyan for videos
+        fileColorAudio = "#00AAAA";      // Cyan for audio
+        fileColorDoc = "#AAAA00";        // Yellow for documents
+        fileColorDefault = "#000000";    // Black for regular files
+    }
+    else if (themeName == "Dark Blue") {
+        // Dark blue theme - classic MC look
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #000080;"
+            "   color: #00ffff;"
+            "   alternate-background-color: #000060;"
+            "   selection-background-color: #008080;"
+            "   selection-color: #ffff00;"
+            "   border: 1px solid #00ffff;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #000080;"
+            "   color: #ffff00;"
+            "   padding: 4px;"
+            "   border: 1px solid #00ffff;"
+            "}";
+        paneBackground = "#000080";
+        paneTextColor = "#00ffff";
+        selectionBackground = "#008080";
+        selectionForeground = "#ffff00";
+        
+        // Path colors for Dark Blue theme
+        activePathColor = "#0000a0";
+        inactivePathColor = "#000060";
+        pathTextColor = "#00ffff";
+        pathBorderColor = "#00ffff";
+        
+        // File type colors for Dark Blue theme (MC classic)
+        fileColorDir = "#FFFFFF";        // White for directories
+        fileColorExec = "#00FF00";       // Bright green for executables
+        fileColorArchive = "#FF0000";    // Bright red for archives
+        fileColorImage = "#FF00FF";      // Bright magenta for images
+        fileColorVideo = "#00FFFF";      // Bright cyan for videos
+        fileColorAudio = "#00FFFF";      // Bright cyan for audio
+        fileColorDoc = "#FFFF00";        // Bright yellow for documents
+        fileColorDefault = "#00FFFF";    // Cyan for regular files
+    }
+    else if (themeName == "MC Classic") {
+        // Midnight Commander classic - dark blue with cyan
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #000084;"
+            "   color: #00ffff;"
+            "   alternate-background-color: #000070;"
+            "   selection-background-color: #008787;"
+            "   selection-color: #ffffff;"
+            "   border: 1px solid #00ffff;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #000084;"
+            "   color: #ffff00;"
+            "   padding: 4px;"
+            "   border: 1px solid #00ffff;"
+            "}";
+        paneBackground = "#000084";
+        paneTextColor = "#00ffff";
+        selectionBackground = "#008787";
+        selectionForeground = "#ffffff";
+        
+        // Path colors for MC Classic theme
+        activePathColor = "#0000a0";
+        inactivePathColor = "#000066";
+        pathTextColor = "#00ffff";
+        pathBorderColor = "#00ffff";
+        
+        // File type colors for MC Classic theme
+        fileColorDir = "#FFFFFF";        // White for directories
+        fileColorExec = "#00FF00";       // Bright green for executables
+        fileColorArchive = "#FF0000";    // Bright red for archives
+        fileColorImage = "#FF00FF";      // Bright magenta for images
+        fileColorVideo = "#00FFFF";      // Bright cyan for videos
+        fileColorAudio = "#00FFFF";      // Bright cyan for audio
+        fileColorDoc = "#FFFF00";        // Bright yellow for documents
+        fileColorDefault = "#00FFFF";    // Cyan for regular files
+    }
+    else if (themeName == "Sand") {
+        // Sand theme - beige/tan colors
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #e8d0a0;"
+            "   color: #000000;"
+            "   alternate-background-color: #d8c090;"
+            "   selection-background-color: #c0a080;"
+            "   selection-color: #000000;"
+            "   border: 1px solid #a08060;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #c0a080;"
+            "   color: #000000;"
+            "   padding: 4px;"
+            "   border: 1px solid #a08060;"
+            "}";
+        paneBackground = "#e8d0a0";
+        paneTextColor = "#000000";
+        selectionBackground = "#c0a080";
+        selectionForeground = "#000000";
+        
+        // Path colors for Sand theme
+        activePathColor = "#f8e0b0";
+        inactivePathColor = "#d0b080";
+        pathTextColor = "#000000";
+        pathBorderColor = "#a08060";
+        
+        // File type colors for Sand theme
+        fileColorDir = "#0000AA";        // Dark blue for directories
+        fileColorExec = "#00AA00";       // Green for executables
+        fileColorArchive = "#AA0000";    // Red for archives
+        fileColorImage = "#AA00AA";      // Magenta for images
+        fileColorVideo = "#00AAAA";      // Cyan for videos
+        fileColorAudio = "#00AAAA";      // Cyan for audio
+        fileColorDoc = "#AA5500";        // Orange for documents
+        fileColorDefault = "#000000";    // Black for regular files
+    }
+    else if (themeName == "Modarcon16") {
+        // Modarcon16 - modern dark theme
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #1e1e1e;"
+            "   color: #d4d4d4;"
+            "   alternate-background-color: #252525;"
+            "   selection-background-color: #264f78;"
+            "   selection-color: #ffffff;"
+            "   border: 1px solid #3e3e3e;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #2d2d2d;"
+            "   color: #cccccc;"
+            "   padding: 4px;"
+            "   border: 1px solid #3e3e3e;"
+            "}";
+        paneBackground = "#1e1e1e";
+        paneTextColor = "#d4d4d4";
+        selectionBackground = "#264f78";
+        selectionForeground = "#ffffff";
+        
+        // Path colors for Modarcon16 theme
+        activePathColor = "#2d2d2d";
+        inactivePathColor = "#181818";
+        pathTextColor = "#d4d4d4";
+        pathBorderColor = "#3e3e3e";
+        
+        // File type colors for Modarcon16 theme
+        fileColorDir = "#569CD6";        // Blue for directories
+        fileColorExec = "#4EC9B0";       // Teal for executables
+        fileColorArchive = "#CE9178";    // Orange for archives
+        fileColorImage = "#C586C0";      // Purple for images
+        fileColorVideo = "#4FC1FF";      // Light blue for videos
+        fileColorAudio = "#4FC1FF";      // Light blue for audio
+        fileColorDoc = "#DCDCAA";        // Yellow for documents
+        fileColorDefault = "#D4D4D4";    // Light gray for regular files
+    }
+    else if (themeName == "Dark Green") {
+        // Dark green terminal style
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #001a00;"
+            "   color: #00ff00;"
+            "   alternate-background-color: #002000;"
+            "   selection-background-color: #004000;"
+            "   selection-color: #00ff00;"
+            "   border: 1px solid #00ff00;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #002a00;"
+            "   color: #00ff00;"
+            "   padding: 4px;"
+            "   border: 1px solid #00ff00;"
+            "}";
+        paneBackground = "#001a00";
+        paneTextColor = "#00ff00";
+        selectionBackground = "#004000";
+        selectionForeground = "#00ff00";
+        
+        // Path colors for Dark Green theme
+        activePathColor = "#003000";
+        inactivePathColor = "#001500";
+        pathTextColor = "#00ff00";
+        pathBorderColor = "#00ff00";
+        
+        // File type colors for Dark Green theme
+        fileColorDir = "#00FF00";        // Bright green for directories
+        fileColorExec = "#FFFF00";       // Yellow for executables
+        fileColorArchive = "#FF0000";    // Red for archives
+        fileColorImage = "#00FFFF";      // Cyan for images
+        fileColorVideo = "#00AAAA";      // Dark cyan for videos
+        fileColorAudio = "#00AAAA";      // Dark cyan for audio
+        fileColorDoc = "#AAFF00";        // Light green for documents
+        fileColorDefault = "#00AA00";    // Medium green for regular files
+    }
+    else if (themeName == "Nicedark") {
+        // Nice dark theme with subtle colors
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #2b2b2b;"
+            "   color: #e0e0e0;"
+            "   alternate-background-color: #323232;"
+            "   selection-background-color: #4a6fa5;"
+            "   selection-color: #ffffff;"
+            "   border: 1px solid #555555;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #3c3c3c;"
+            "   color: #e0e0e0;"
+            "   padding: 4px;"
+            "   border: 1px solid #555555;"
+            "}";
+        paneBackground = "#2b2b2b";
+        paneTextColor = "#e0e0e0";
+        selectionBackground = "#4a6fa5";
+        selectionForeground = "#ffffff";
+        
+        // Path colors for Nicedark theme
+        activePathColor = "#3c3c3c";
+        inactivePathColor = "#222222";
+        pathTextColor = "#e0e0e0";
+        pathBorderColor = "#555555";
+        
+        // File type colors for Nicedark theme
+        fileColorDir = "#6A9FB5";        // Blue for directories
+        fileColorExec = "#90C695";       // Green for executables
+        fileColorArchive = "#D28B71";    // Orange for archives
+        fileColorImage = "#C586C0";      // Purple for images
+        fileColorVideo = "#6FA8DC";      // Light blue for videos
+        fileColorAudio = "#6FA8DC";      // Light blue for audio
+        fileColorDoc = "#E5C07B";        // Yellow for documents
+        fileColorDefault = "#E0E0E0";    // Light gray for regular files
+    }
+    else if (themeName == "Gotar") {
+        // Gotar - amber on black
+        paneStyle = 
+            "QTreeView {"
+            "   background-color: #000000;"
+            "   color: #ffb000;"
+            "   alternate-background-color: #0a0a0a;"
+            "   selection-background-color: #ff8000;"
+            "   selection-color: #000000;"
+            "   border: 1px solid #ffb000;"
+            "}"
+            "QHeaderView::section {"
+            "   background-color: #1a1a0a;"
+            "   color: #ffb000;"
+            "   padding: 4px;"
+            "   border: 1px solid #ffb000;"
+            "}";
+        paneBackground = "#000000";
+        paneTextColor = "#ffb000";
+        selectionBackground = "#ff8000";
+        selectionForeground = "#000000";
+        
+        // Path colors for Gotar theme
+        activePathColor = "#1a1a0a";
+        inactivePathColor = "#050505";
+        pathTextColor = "#ffb000";
+        pathBorderColor = "#ffb000";
+        
+        // File type colors for Gotar theme (amber on black)
+        fileColorDir = "#FFFF00";        // Yellow for directories
+        fileColorExec = "#00FF00";       // Green for executables
+        fileColorArchive = "#FF8000";    // Orange for archives
+        fileColorImage = "#FF00FF";      // Magenta for images
+        fileColorVideo = "#00FFFF";      // Cyan for videos
+        fileColorAudio = "#00FFFF";      // Cyan for audio
+        fileColorDoc = "#FFD700";        // Gold for documents
+        fileColorDefault = "#FFB000";    // Amber for regular files
+    }
+
+    paneStyle += QString(
+        "QTreeView::item:selected:active {"
+        "   background-color: %1;"
+        "   color: %2;"
+        "}"
+        "QTreeView::item:selected:active:hover {"
+        "   background-color: %1;"
+        "   color: %2;"
+        "}"
+        "QTreeView::item:selected:focus {"
+        "   background-color: %1;"
+        "   color: %2;"
+        "}"
+        "QTreeView::item:selected:!active {"
+        "   background-color: %3;"
+        "   color: %4;"
+        "}"
+    ).arg(selectionBackground, selectionForeground, paneBackground, paneTextColor);
+    
+    // Store the current pane style
+    currentPaneStyle = paneStyle;
+    
+    // Apply the theme to both panes based on active state
+    updatePaneStyles();
+    
+    // Update file item delegates with theme colors
+    if (leftPane && leftPane->getDelegate()) {
+        leftPane->getDelegate()->setThemeColors(
+            fileColorDir, fileColorExec, fileColorArchive, fileColorImage,
+            fileColorVideo, fileColorAudio, fileColorDoc, fileColorDefault
+        );
+    }
+    if (rightPane && rightPane->getDelegate()) {
+        rightPane->getDelegate()->setThemeColors(
+            fileColorDir, fileColorExec, fileColorArchive, fileColorImage,
+            fileColorVideo, fileColorAudio, fileColorDoc, fileColorDefault
+        );
+    }
+    
+    // Force repaint to update colors
+    if (leftPane) leftPane->viewport()->update();
+    if (rightPane) rightPane->viewport()->update();
+    
+    // Update status bar if it exists
+    if (label) {
+        label->setText(QString("Theme changed to: %1").arg(themeName));
+    }
+}
+
+void FileMainWindow::updatePaneStyles()
+{
+    // Determine which pane is active and inactive
+    QtFileIconView *activePaneWidget = activePane;
+    QtFileIconView *inactivePaneWidget = (activePane == leftPane) ? rightPane : leftPane;
+    
+    // Apply style to active pane (with visible selection)
+    if (activePaneWidget) {
+        activePaneWidget->setStyleSheet(currentPaneStyle);
+    }
+    
+    // Apply style to inactive pane (with invisible selection)
+    if (inactivePaneWidget) {
+        inactivePaneWidget->setStyleSheet(currentPaneStyle);
+    }
+    
+    // Update path display styles based on active state
+    QLineEdit *activePathEdit = (activePane == leftPane) ? leftPathEdit : rightPathEdit;
+    QLineEdit *inactivePathEdit = (activePane == leftPane) ? rightPathEdit : leftPathEdit;
+    
+    activePathEdit->setStyleSheet(QString("QLineEdit { background-color: %1; color: %2; border: 1px solid %3; }")
+                                .arg(activePathColor, pathTextColor, pathBorderColor));
+    inactivePathEdit->setStyleSheet(QString("QLineEdit { background-color: %1; color: %2; border: 1px solid %3; }")
+                                  .arg(inactivePathColor, pathTextColor, pathBorderColor));
+    
+    // Force repaint to update selection appearance
+    if (leftPane) leftPane->viewport()->update();
+    if (rightPane) rightPane->viewport()->update();
 }
 
 void FileMainWindow::about()
@@ -584,6 +1191,7 @@ void FileMainWindow::about()
     shortcutsText->setHtml(
         "<table cellpadding='4' cellspacing='2'>"
         "<tr><td><b>F1</b></td><td>Show this About dialog</td></tr>"
+        "<tr><td><b>Tab</b></td><td>Switch between left and right panels</td></tr>"
         "<tr><td><b>Home</b></td><td>Go to home directory</td></tr>"
         "<tr><td><b>Backspace</b></td><td>Go up directory</td></tr>"        
         "<tr><td><b>F7</b></td><td>Create new directory</td></tr>"    
@@ -651,46 +1259,6 @@ void FileMainWindow::about()
     aboutDialog.exec();
 }
 
-void FileMainWindow::changePath(const QString &path)
-{
-    fileview->setDirectory(path);
-}
-
-void FileMainWindow::pathEditFinished()
-{
-    QString newPath = pathCombo->lineEdit()->text();
-    QDir dir(newPath);
-    
-    if (dir.exists()) {
-        fileview->setDirectory(dir.absolutePath());
-    } else {
-        // Reset to current directory if invalid path
-        pathCombo->lineEdit()->setText(fileview->currentDir().absolutePath());
-        QMessageBox::warning(this, "Invalid Path", 
-                           QString("Path does not exist: %1").arg(newPath));
-    }
-}
-
-void FileMainWindow::enableUp()
-{
-    upButton->setEnabled(true);
-}
-
-void FileMainWindow::disableUp()
-{
-    upButton->setEnabled(false);
-}
-
-void FileMainWindow::enableMkdir()
-{
-    mkdirButton->setEnabled(true);
-}
-
-void FileMainWindow::disableMkdir()
-{
-    mkdirButton->setEnabled(false);
-}
-
 void FileMainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
@@ -703,10 +1271,10 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
         case Qt::Key_Enter:
             // Enter selected directory or open file
             {
-                QModelIndexList selected = fileview->selectionModel()->selectedIndexes();
+                QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
                 if (!selected.isEmpty()) {
                     QModelIndex index = selected.first();
-                    fileview->itemDoubleClicked(index);
+                    activePane->itemDoubleClicked(index);
                 }
             }
             break;
@@ -776,11 +1344,60 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
             }
             break;
             
+        case Qt::Key_Tab:
+            // Switch between left and right panes
+            event->accept();  // Prevent default tab navigation
+            if (activePane == leftPane) {
+                activatePane(rightPane, rightPaneSelectedRow, QModelIndex());
+            } else {
+                activatePane(leftPane, leftPaneSelectedRow, QModelIndex());
+            }
+            return;  // Don't call parent handler
+            
         default:
             // Pass other keys to parent
             QMainWindow::keyPressEvent(event);
             break;
     }
+}
+
+bool FileMainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == leftPane || obj == rightPane) {
+        if (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonDblClick) {
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() != Qt::LeftButton) {
+                return true;
+            }
+        } else if (event->type() == QEvent::MouseButtonRelease) {
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() != Qt::LeftButton) {
+                return true;
+            }
+        } else if (event->type() == QEvent::ContextMenu) {
+            return true;
+        }
+    }
+
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        
+        // Handle Tab key to switch between panels
+        if (keyEvent->key() == Qt::Key_Tab) {
+            if (obj == leftPane || obj == rightPane) {
+                // Switch between left and right panes
+                if (activePane == leftPane) {
+                    activatePane(rightPane, rightPaneSelectedRow, QModelIndex());
+                } else {
+                    activatePane(leftPane, leftPaneSelectedRow, QModelIndex());
+                }
+                return true;  // Event handled, don't propagate
+            }
+        }
+    }
+    
+    // Pass event to base class for default handling
+    return QMainWindow::eventFilter(obj, event);
 }
 
 bool FileMainWindow::copyDirectoryRecursively(const QString &sourceDir, const QString &targetDir, bool moveOperation)
@@ -875,6 +1492,258 @@ void QtFileIconDrag::setUrls(const QStringList &urlList)
     mimeData()->setUrls(urlObjects);
 }
 
+/****************************************************************************
+ *
+ * FileSortProxyModel - keeps ".." entry pinned and hides it at root
+ *
+ *****************************************************************************/
+
+class FileSortProxyModel : public QSortFilterProxyModel
+{
+public:
+    explicit FileSortProxyModel(QObject *parent = nullptr)
+        : QSortFilterProxyModel(parent), currentPathIsRoot(false), currentSortOrder(Qt::AscendingOrder)
+    {
+        setDynamicSortFilter(true);
+        setSortCaseSensitivity(Qt::CaseInsensitive);
+    }
+
+    void setCurrentPath(const QString &path)
+    {
+        currentPathIsRoot = QDir::cleanPath(path) == QDir::rootPath();
+        invalidateFilter();
+    }
+
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override
+    {
+        currentSortOrder = order;
+        QSortFilterProxyModel::sort(column, order);
+    }
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
+    {
+        if (!currentPathIsRoot) {
+            return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+        }
+
+        QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
+        if (!index.isValid()) {
+            return false;
+        }
+
+        QString name = sourceModel()->data(index, QFileSystemModel::FileNameRole).toString();
+        if (name == QStringLiteral("..")) {
+            return false;
+        }
+
+        return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+    }
+
+    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override
+    {
+        QString leftName = sourceModel()->data(left, QFileSystemModel::FileNameRole).toString();
+        QString rightName = sourceModel()->data(right, QFileSystemModel::FileNameRole).toString();
+
+        const bool leftIsParent = (leftName == QStringLiteral(".."));
+        const bool rightIsParent = (rightName == QStringLiteral(".."));
+
+        if (leftIsParent || rightIsParent) {
+            if (leftIsParent && rightIsParent) {
+                return false;
+            }
+            if (currentSortOrder == Qt::AscendingOrder) {
+                return leftIsParent;
+            }
+            // Descending order: treat ".." as largest to keep it first after order inversion
+            return !leftIsParent;
+        }
+
+        return QSortFilterProxyModel::lessThan(left, right);
+    }
+
+private:
+    bool currentPathIsRoot;
+    Qt::SortOrder currentSortOrder;
+};
+
+/*****************************************************************************
+ *
+ * FileItemDelegate Implementation - MC-style file display
+ *
+ *****************************************************************************/
+
+FileItemDelegate::FileItemDelegate(QObject *parent)
+    : QStyledItemDelegate(parent)
+{
+    // Default colors (will be updated by theme)
+    m_dirColor = "#FFFFFF";
+    m_execColor = "#00FF00";
+    m_archiveColor = "#FF0000";
+    m_imageColor = "#FF00FF";
+    m_videoColor = "#00FFFF";
+    m_audioColor = "#00FFFF";
+    m_docColor = "#FFFF00";
+    m_defaultColor = "#FFFFFF";
+}
+
+void FileItemDelegate::setThemeColors(const QString &dirColor, const QString &execColor,
+                                      const QString &archiveColor, const QString &imageColor,
+                                      const QString &videoColor, const QString &audioColor,
+                                      const QString &docColor, const QString &defaultColor)
+{
+    m_dirColor = dirColor;
+    m_execColor = execColor;
+    m_archiveColor = archiveColor;
+    m_imageColor = imageColor;
+    m_videoColor = videoColor;
+    m_audioColor = audioColor;
+    m_docColor = docColor;
+    m_defaultColor = defaultColor;
+}
+
+QString FileItemDelegate::getFilePrefix(const QFileInfo &fileInfo) const
+{
+    // For "..", we return the full text including the prefix
+    // to avoid duplication in paint method
+    if (fileInfo.fileName() == "..") {
+        return "/";
+    }
+    
+    if (fileInfo.isDir()) {
+        return "/";
+    }
+    
+    if (fileInfo.isExecutable() && !fileInfo.isDir()) {
+        return "*";
+    }
+    
+    return "";
+}
+
+QColor FileItemDelegate::getFileColor(const QFileInfo &fileInfo) const
+{
+    if (fileInfo.fileName() == "..") {
+        return QColor(m_dirColor);
+    }
+    
+    if (fileInfo.isDir()) {
+        return QColor(m_dirColor);
+    }
+    
+    if (fileInfo.isExecutable() && !fileInfo.isDir()) {
+        return QColor(m_execColor);
+    }
+    
+    QString suffix = fileInfo.suffix().toLower();
+    
+    // Archive files
+    if (suffix == "zip" || suffix == "tar" || suffix == "gz" || suffix == "bz2" || 
+        suffix == "xz" || suffix == "7z" || suffix == "rar" || suffix == "tgz") {
+        return QColor(m_archiveColor);
+    }
+    
+    // Image files
+    if (suffix == "jpg" || suffix == "jpeg" || suffix == "png" || suffix == "gif" || 
+        suffix == "bmp" || suffix == "svg" || suffix == "webp" || suffix == "ico") {
+        return QColor(m_imageColor);
+    }
+    
+    // Video files
+    if (suffix == "mp4" || suffix == "avi" || suffix == "mkv" || suffix == "mov" || 
+        suffix == "wmv" || suffix == "flv" || suffix == "webm" || suffix == "m4v") {
+        return QColor(m_videoColor);
+    }
+    
+    // Audio files
+    if (suffix == "mp3" || suffix == "wav" || suffix == "flac" || suffix == "ogg" || 
+        suffix == "m4a" || suffix == "aac" || suffix == "wma") {
+        return QColor(m_audioColor);
+    }
+    
+    // Document files
+    if (suffix == "pdf" || suffix == "doc" || suffix == "docx" || suffix == "txt" || 
+        suffix == "odt" || suffix == "rtf" || suffix == "md") {
+        return QColor(m_docColor);
+    }
+    
+    return QColor(m_defaultColor);
+}
+
+void FileItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
+                             const QModelIndex &index) const
+{
+    // Only customize column 0 (filename), let default delegate handle other columns
+    if (index.column() != 0) {
+        QStyledItemDelegate::paint(painter, option, index);
+        return;
+    }
+    
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
+    
+    // Get file info - handle proxy model
+    QFileInfo fileInfo;
+    const QAbstractItemModel *model = index.model();
+    
+    // Check if it's a proxy model and get the source model
+    const QSortFilterProxyModel *proxyModel = qobject_cast<const QSortFilterProxyModel*>(model);
+    if (proxyModel) {
+        const QFileSystemModel *fsModel = qobject_cast<const QFileSystemModel*>(proxyModel->sourceModel());
+        if (fsModel) {
+            QModelIndex sourceIndex = proxyModel->mapToSource(index);
+            fileInfo = fsModel->fileInfo(sourceIndex);
+        }
+    } else {
+        // Direct file system model
+        const QFileSystemModel *fsModel = qobject_cast<const QFileSystemModel*>(model);
+        if (fsModel) {
+            fileInfo = fsModel->fileInfo(index);
+        }
+    }
+    
+    // Fallback: use display role if we couldn't get fileInfo properly
+    if (!fileInfo.exists() && !fileInfo.fileName().isEmpty()) {
+        // Try to construct from display text - this is a last resort
+        QString fileName = index.data(Qt::DisplayRole).toString();
+        // This won't work well, but prevents crashes
+        fileInfo = QFileInfo(fileName);
+    }
+    
+    // Draw background based on selection and active state
+    if (opt.state & QStyle::State_Selected) {
+        if (opt.state & QStyle::State_Active) {
+            // Active pane - show selection highlight
+            painter->fillRect(opt.rect, opt.palette.highlight());
+        } else {
+            // Inactive pane - use background color (hide selection)
+            painter->fillRect(opt.rect, opt.palette.base());
+        }
+    } else {
+        painter->fillRect(opt.rect, opt.palette.base());
+    }
+    
+    // Get prefix and color
+    QString prefix = getFilePrefix(fileInfo);
+    QColor textColor = getFileColor(fileInfo);
+    
+    // Use selection color if selected AND active
+    if (opt.state & QStyle::State_Selected) {
+        if (opt.state & QStyle::State_Active) {
+            // Active pane - use highlight text color
+            textColor = opt.palette.highlightedText().color();
+        }
+        // Inactive pane - keep the file type color
+    }
+    
+    // Draw text with prefix
+    painter->setPen(textColor);
+    QString displayText = prefix + index.data(Qt::DisplayRole).toString();
+    
+    QRect textRect = opt.rect.adjusted(5, 0, -5, 0);
+    painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, displayText);
+}
+
 /*****************************************************************************
  *
  * QtFileIconView Implementation using QListView
@@ -882,12 +1751,59 @@ void QtFileIconDrag::setUrls(const QStringList &urlList)
  *****************************************************************************/
 
 QtFileIconView::QtFileIconView(const QString &dir, QWidget *parent)
-    : QListView(parent), vm(Large), openItem(nullptr)
+    : QTreeView(parent)
 {
     fileModel = new QFileSystemModel(this);
-    fileModel->setRootPath(dir);
-    setModel(fileModel);
-    setRootIndex(fileModel->index(dir));
+    fileModel->setRootPath(QDir::rootPath());
+    // Show .. but not .
+    fileModel->setFilter(QDir::AllEntries | QDir::NoDot);
+    
+    proxyModel = new FileSortProxyModel(this);
+    proxyModel->setSourceModel(fileModel);
+    proxyModel->setCurrentPath(dir);
+    setModel(proxyModel);
+    setRootIndex(proxyModel->mapFromSource(fileModel->index(dir)));
+    
+    // Disable icons in the file system model
+    fileModel->setOption(QFileSystemModel::DontUseCustomDirectoryIcons, true);
+    
+    // Create and set custom delegate for MC-style display
+    itemDelegate = new FileItemDelegate(this);
+    setItemDelegateForColumn(0, itemDelegate);
+    
+    // Configure tree view for Midnight Commander style
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+    setAlternatingRowColors(false);
+    setSortingEnabled(true);
+    setUniformRowHeights(true);
+    setRootIsDecorated(false);
+    setItemsExpandable(false);
+    setExpandsOnDoubleClick(false);
+    setIndentation(0);
+    
+    // Disable scrollbars
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    
+    // Disable icon display
+    setIconSize(QSize(0, 0));
+    
+    // Show only Name, Size, and Modified columns
+    hideColumn(1); // Hide Type column
+    setColumnWidth(0, 250); // Name column - minimum width
+    
+    // Set header - Name stretches, Size and Modified auto-fit on the right
+    header()->setStretchLastSection(false);
+    header()->setSectionsMovable(false); // Prevent column reordering
+    header()->setMinimumSectionSize(50); // Reduce minimum size for tighter fit
+    header()->setDefaultSectionSize(80); // Reduce default size
+    header()->setSectionResizeMode(0, QHeaderView::Stretch); // Name fills available space
+    header()->setSectionResizeMode(2, QHeaderView::ResizeToContents); // Size auto-fits content
+    header()->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Modified auto-fits content
+    header()->setSortIndicatorShown(true);
+    header()->setSortIndicator(0, Qt::AscendingOrder);
+    sortByColumn(0, Qt::AscendingOrder);
     
     viewDir = QDir(dir);
     newFolderNum = 1;
@@ -900,33 +1816,23 @@ QtFileIconView::QtFileIconView(const QString &dir, QWidget *parent)
     
     setDragDropMode(QAbstractItemView::DragDrop);
     setAcceptDrops(true);
-}
-
-void QtFileIconView::setViewMode(ViewMode m)
-{
-    vm = m;
-    if (m == Large) {
-        QListView::setViewMode(QListView::IconMode);
-        setIconSize(QSize(48, 48));
-    } else {
-        QListView::setViewMode(QListView::ListMode);
-        setIconSize(QSize(16, 16));
-    }
+    
+    // Emit initial directory changed signal
+    emit directoryChanged(dir);
 }
 
 void QtFileIconView::setDirectory(const QString &dir)
 {
     viewDir = QDir(dir);
-    setRootIndex(fileModel->index(dir));
-    emit directoryChanged(dir);
-    
-    if (dir == "/") {
-        emit disableUp();
+    if (proxyModel) {
+        proxyModel->setCurrentPath(dir);
+        QModelIndex sourceIndex = fileModel->index(dir);
+        setRootIndex(proxyModel->mapFromSource(sourceIndex));
+        sortByColumn(header()->sortIndicatorSection(), header()->sortIndicatorOrder());
     } else {
-        emit enableUp();
+        setRootIndex(fileModel->index(dir));
     }
-    
-    emit enableMkdir();
+    emit directoryChanged(dir);
 }
 
 void QtFileIconView::setDirectory(const QDir &dir)
@@ -941,14 +1847,27 @@ QDir QtFileIconView::currentDir()
 
 void QtFileIconView::itemDoubleClicked(const QModelIndex &index)
 {
-    if (fileModel->isDir(index)) {
-        QString path = fileModel->filePath(index);
+    QModelIndex sourceIndex = mapToSource(index);
+    if (!sourceIndex.isValid()) {
+        return;
+    }
+
+    if (fileModel->isDir(sourceIndex)) {
+        QString path = fileModel->filePath(sourceIndex);
         setDirectory(path);
     } else {
         // Open file
-        QString filePath = fileModel->filePath(index);
+        QString filePath = fileModel->filePath(sourceIndex);
         QProcess::startDetached("xdg-open", QStringList() << filePath);
     }
+}
+
+QModelIndex QtFileIconView::mapToSource(const QModelIndex &proxyIndex) const
+{
+    if (!proxyModel) {
+        return proxyIndex;
+    }
+    return proxyModel->mapToSource(proxyIndex);
 }
 
 void QtFileIconView::newDirectory()
@@ -956,74 +1875,9 @@ void QtFileIconView::newDirectory()
     QMessageBox::information(this, "New Directory", "New directory functionality");
 }
 
-void QtFileIconView::updateonce()
-{
-    // QFileSystemModel refreshes automatically, but we can force it
-    QString currentPath = viewDir.absolutePath();
-    setDirectory(currentPath);
-}
-
-void QtFileIconView::cut_prev()
-{
-    QMessageBox::information(this, "Cut", "Cut operation");
-}
-
-void QtFileIconView::copy_prev()
-{
-    QMessageBox::information(this, "Copy", "Copy operation");
-}
-
-void QtFileIconView::rename_prev()
-{
-    QMessageBox::information(this, "Rename", "Rename operation");
-}
-
-void QtFileIconView::remove_prev()
-{
-    QMessageBox::information(this, "Remove", "Remove operation");
-}
-
-void QtFileIconView::paste()
-{
-    QMessageBox::information(this, "Paste", "Paste operation");
-}
-
-void QtFileIconView::cut_fin(QModelIndex item)
-{
-    Q_UNUSED(item)
-}
-
-void QtFileIconView::copy_fin(QModelIndex item)
-{
-    Q_UNUSED(item)
-}
-
-void QtFileIconView::rename_fin(QModelIndex item)
-{
-    Q_UNUSED(item)
-}
-
-void QtFileIconView::remove_fin(QModelIndex item)
-{
-    Q_UNUSED(item)
-}
-
-void QtFileIconView::slotDropped(QDropEvent *e)
-{
-    Q_UNUSED(e)
-    QMessageBox::information(this, "Drop", "Drop operation");
-}
-
 void QtFileIconView::keyPressEvent(QKeyEvent *e)
 {
     switch (e->key()) {
-        case Qt::Key_N:
-            if (e->modifiers() & Qt::ControlModifier) {
-                newDirectory();
-                return;
-            }
-            break;
-            
         case Qt::Key_Return:
         case Qt::Key_Enter:
             {
@@ -1037,36 +1891,6 @@ void QtFileIconView::keyPressEvent(QKeyEvent *e)
     }
     
     // Pass other keys to parent
-    QListView::keyPressEvent(e);
+    QTreeView::keyPressEvent(e);
 }
 
-QDrag *QtFileIconView::dragObject()
-{
-    // Drag implementation
-    QtFileIconDrag *drag = new QtFileIconDrag(this);
-    QStringList urls;
-    
-    QModelIndexList selected = selectedIndexes();
-    for (const QModelIndex &index : selected) {
-        urls << fileModel->filePath(index);
-    }
-    
-    drag->setUrls(urls);
-    return drag;
-}
-
-// Placeholder implementations for various slots
-void QtFileIconView::viewLarge() { setViewMode(Large); }
-void QtFileIconView::viewDetail() { setViewMode(Detail); }
-void QtFileIconView::viewBottom() { }
-void QtFileIconView::viewRight() { }
-void QtFileIconView::flowEast() { }
-void QtFileIconView::flowSouth() { }
-void QtFileIconView::itemTextTruncate() { }
-void QtFileIconView::itemTextWordWrap() { }
-void QtFileIconView::sortAscending() { fileModel->sort(0, Qt::AscendingOrder); }
-void QtFileIconView::sortDescending() { fileModel->sort(0, Qt::DescendingOrder); }
-void QtFileIconView::arrangeItemsInGrid() { }
-void QtFileIconView::slotRightPressed(const QModelIndex &index) { Q_UNUSED(index) }
-void QtFileIconView::openFolder() { }
-void QtFileIconView::regupdate() { updateonce(); }

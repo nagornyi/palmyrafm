@@ -4,6 +4,33 @@
 
 PalmyraFM is a simple, two-pane file manager for Linux and macOS that has been developed using Qt6 libraries. It provides an intuitive dual-pane interface for efficient file management operations.
 
+## Features
+
+- **Dual-Pane Interface**: Navigate two directories simultaneously
+- **Individual Path Displays**: Each pane has its own path display above it
+- **Active/Inactive Visual Indication**: The active pane's path is highlighted
+- **Midnight Commander-Style Display**: Files and directories shown with prefixes instead of icons
+  - Directories: `/` prefix (e.g., `/Documents`)
+  - Executable files: `*` prefix (e.g., `*script.sh`)
+  - Color-coded by file type (archives, images, videos, documents, etc.)
+- **Multiple Color Themes**: Choose from several pre-configured color schemes with theme-appropriate file colors
+- **Persistent Selection**: Row selection is maintained when switching between panes
+- **Directory Navigation**: Up/Home buttons for easy navigation
+- **File Operations**: Cut, copy, paste, delete, and create new folders
+
+## File Type Color Coding
+
+Files are color-coded based on their type, with colors that adapt to the selected theme:
+
+- **Directories**: Blue/White/Yellow (depending on theme)
+- **Executable files**: Green/Yellow
+- **Archives** (.zip, .tar, .gz, etc.): Red/Orange
+- **Images** (.jpg, .png, .gif, etc.): Magenta/Purple
+- **Videos** (.mp4, .avi, .mkv, etc.): Cyan/Light Blue
+- **Audio** (.mp3, .wav, .flac, etc.): Cyan/Light Blue
+- **Documents** (.pdf, .doc, .txt, etc.): Yellow/Gold
+- **Regular files**: Theme's default text color
+
 ## Files Structure
 
 ### Qt6 Project Files

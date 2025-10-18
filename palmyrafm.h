@@ -6,8 +6,8 @@
 #define PALMYRAFM_H
 
 #include <QMainWindow>
-#include <QListView>
 #include <QTreeView>
+#include <QHeaderView>
 #include <QWidget>
 #include <QDrag>
 #include <QStandardItem>
@@ -27,11 +27,18 @@
 #include <QLineEdit>
 #include <QSizePolicy>
 #include <QKeyEvent>
+#include <QSplitter>
+#include <QMenu>
+#include <QCursor>
+#include <QSortFilterProxyModel>
+#include <QStyledItemDelegate>
+#include <QPainter>
 
 // Forward declarations
 class QtFileIconView;
-class DirectoryView;
 class Copier;
+class FileSortProxyModel;
+class FileItemDelegate;
 
 /*****************************************************************************
  *
@@ -45,26 +52,50 @@ class FileMainWindow : public QMainWindow
 
 public:
     FileMainWindow();
-    QtFileIconView *fileView() { return fileview; }
-    DirectoryView *dirList() { return dirlist; }
+    QtFileIconView *fileView() { return activePane == leftPane ? leftPane : rightPane; }
     void show();
     
 protected:
     void setup();
     void setPathCombo();
+    void applyTheme(const QString &themeName);
+    void updatePaneStyles();
     virtual void keyPressEvent(QKeyEvent *event) override;
-    QtFileIconView *fileview;
-    DirectoryView *dirlist;
+    virtual bool eventFilter(QObject *obj, QEvent *event) override;
+    QtFileIconView *leftPane;
+    QtFileIconView *rightPane;
+    QtFileIconView *activePane;
     QProgressBar *progress;
     QLabel *label;
-    QComboBox *pathCombo;
+    QLineEdit *leftPathEdit;  
+    QLineEdit *rightPathEdit;
     QToolButton *upButton, *mkdirButton;
+    QString currentTheme;
+    QString currentPaneStyle;
+    int leftPaneSelectedRow;
+    int rightPaneSelectedRow;
+
+    // Colors for active/inactive path displays
+    QString activePathColor;
+    QString inactivePathColor;
+    QString pathTextColor;
+    QString pathBorderColor;
+    
+    // File type colors for MC-style display
+    QString fileColorDir;
+    QString fileColorExec;
+    QString fileColorArchive;
+    QString fileColorImage;
+    QString fileColorVideo;
+    QString fileColorAudio;
+    QString fileColorDoc;
+    QString fileColorDefault;
 
 protected slots:
-    void directoryChanged( const QString & );
-    void slotStartReadDir( int dirs );
-    void slotReadNextDir();
-    void slotReadDirDone();
+    void leftPaneClicked(const QModelIndex &index);
+    void rightPaneClicked(const QModelIndex &index);
+    void leftPaneDirectoryChanged(const QString &path);
+    void rightPaneDirectoryChanged(const QString &path);
     void cdUp();
     void goHome();
     void newFolder();
@@ -73,20 +104,14 @@ protected slots:
     void paste();
     void rename();
     void remove();
-    void update();
-    void updateonce();
     void about();
-    void changePath( const QString &path );
-    void pathEditFinished();
-    void enableUp();
-    void disableUp();
-    void enableMkdir();
-    void disableMkdir();
+    void showAppearanceMenu();
 
 private:
     QStringList copiedFiles;
     bool isCutOperation;
     
+    void activatePane(QtFileIconView *targetPane, int &targetSelectedRow, const QModelIndex &requestedIndex);
     bool copyDirectoryRecursively(const QString &sourceDir, const QString &targetDir, bool moveOperation = false);
 };
 
@@ -133,105 +158,78 @@ private:
 
 /*****************************************************************************
  *
+ * FileItemDelegate - Custom delegate for MC-style file display
+ *
+ *****************************************************************************/
+
+class FileItemDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+
+public:
+    explicit FileItemDelegate(QObject *parent = nullptr);
+    
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, 
+               const QModelIndex &index) const override;
+    
+    void setThemeColors(const QString &dirColor, const QString &execColor,
+                       const QString &archiveColor, const QString &imageColor,
+                       const QString &videoColor, const QString &audioColor,
+                       const QString &docColor, const QString &defaultColor);
+
+private:
+    QString getFilePrefix(const QFileInfo &fileInfo) const;
+    QColor getFileColor(const QFileInfo &fileInfo) const;
+    
+    // Theme colors
+    QString m_dirColor;
+    QString m_execColor;
+    QString m_archiveColor;
+    QString m_imageColor;
+    QString m_videoColor;
+    QString m_audioColor;
+    QString m_docColor;
+    QString m_defaultColor;
+};
+
+/*****************************************************************************
+ *
  * QtFileIconView - File list view using QListView
  *
  *****************************************************************************/
 
-class QtFileIconView : public QListView
+class QtFileIconView : public QTreeView
 {
     Q_OBJECT
 
 public:
     QtFileIconView( const QString &dir, QWidget *parent = nullptr );
-    enum ViewMode { Large, Detail };
-    void setViewMode( ViewMode m );
-    ViewMode viewMode() const { return vm; }
     QDir currentDir();
     void itemDoubleClicked( const QModelIndex &index );
+    QFileSystemModel *fileSystemModel() const { return fileModel; }
+    QModelIndex mapToSource(const QModelIndex &proxyIndex) const;
+    FileItemDelegate *getDelegate() const { return itemDelegate; }
 
 public slots:
     void setDirectory( const QString &dir );
     void setDirectory( const QDir &dir );
     void newDirectory();
-    void cut_prev();
-    void copy_prev();
-    void rename_prev();
-    void remove_prev();
-    void updateonce();
-    void cut_fin( QModelIndex item );
-    void copy_fin( QModelIndex item );
-    void rename_fin( QModelIndex item );
-    void remove_fin( QModelIndex item );
-    void paste();
 
 signals:
-    void directoryChanged( const QString & );
-    void startReadDir( int dirs );
-    void readNextDir();
-    void readDirDone();
-    void enableUp();
-    void disableUp();
-    void enableMkdir();
-    void disableMkdir();
-
-protected slots:
-    void slotDropped( QDropEvent *e );
-    void viewLarge();
-    void viewDetail();
-    void viewBottom();
-    void viewRight();
-    void flowEast();
-    void flowSouth();
-    void itemTextTruncate();
-    void itemTextWordWrap();
-    void sortAscending();
-    void sortDescending(); 
-    void arrangeItemsInGrid();
-    void slotRightPressed( const QModelIndex &index );
-    void openFolder();
-    void regupdate();
+    void directoryChanged(const QString &path);
 
 protected:
-    virtual QDrag *dragObject();
     virtual void keyPressEvent( QKeyEvent *e );
     
     QFileSystemModel *fileModel;
+    FileSortProxyModel *proxyModel;
+    FileItemDelegate *itemDelegate;
     QDir viewDir;
     int newFolderNum;
-    ViewMode vm;
-    void *openItem; // placeholder
 
 private:
     QProcess *proc1;
     QTimer *internalTimer;
-};
-
-/*****************************************************************************
- *
- * DirectoryView - directory tree view
- *
- *****************************************************************************/
-
-class DirectoryView : public QTreeView
-{
-    Q_OBJECT
-
-public:
-    DirectoryView( QWidget *parent = nullptr, bool sdo = false );
-    bool showDirsOnly() { return dirsOnly; }
-
-public slots:
-    void setDir( const QString & );
-
-signals:
-    void folderSelected( const QString & );
-
-protected slots:
-    void slotFolderSelected( const QModelIndex &index );
-
-private:
-    bool dirsOnly;
-    QFileSystemModel *model;
 };
 
 #endif // PALMYRAFM_H

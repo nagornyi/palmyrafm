@@ -8,8 +8,7 @@ CONFIG += c++17
 HEADERS = palmyrafm.h
 
 SOURCES = main.cpp \
-          palmyrafm.cpp \
-          dirview.cpp
+          palmyrafm.cpp
 
 RESOURCES = palmyrafm.qrc
 
