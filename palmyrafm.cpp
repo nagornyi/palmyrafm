@@ -174,7 +174,7 @@ void FileMainWindow::setup()
     QToolButton *homeButton = new QToolButton();
     homeButton->setText("Home");
     homeButton->setToolTip("Go to Home Directory");
-    homeButton->setStyleSheet("QToolButton { background-color: gray; color: white; border: 1px solid #666666; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #a0a0a0; } QToolButton:pressed { background-color: #505050; }");
+    homeButton->setStyleSheet("QToolButton { background-color: #006080; color: white; border: 1px solid #004060; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #0080a0; } QToolButton:pressed { background-color: #004050; }");
     connect(homeButton, &QToolButton::clicked, this, &FileMainWindow::goHome);
     toolbar1->addWidget(homeButton);
     
@@ -182,7 +182,7 @@ void FileMainWindow::setup()
     upButton = new QToolButton();
     upButton->setText("Up");
     upButton->setToolTip("Go Up");
-    upButton->setStyleSheet("QToolButton { background-color: gray; color: white; border: 1px solid #666666; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #a0a0a0; } QToolButton:pressed { background-color: #505050; }");
+    upButton->setStyleSheet("QToolButton { background-color: #006080; color: white; border: 1px solid #004060; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #0080a0; } QToolButton:pressed { background-color: #004050; }");
     connect(upButton, &QToolButton::clicked, this, &FileMainWindow::cdUp);
     toolbar1->addWidget(upButton);
     
@@ -190,7 +190,7 @@ void FileMainWindow::setup()
     mkdirButton = new QToolButton();
     mkdirButton->setText("New Folder");
     mkdirButton->setToolTip("New Folder");
-    mkdirButton->setStyleSheet("QToolButton { background-color: gray; color: white; border: 1px solid #666666; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #a0a0a0; } QToolButton:pressed { background-color: #505050; }");
+    mkdirButton->setStyleSheet("QToolButton { background-color: #006080; color: white; border: 1px solid #004060; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #0080a0; } QToolButton:pressed { background-color: #004050; }");
     connect(mkdirButton, &QToolButton::clicked, this, &FileMainWindow::newFolder);
     toolbar1->addWidget(mkdirButton);
     
@@ -215,7 +215,7 @@ void FileMainWindow::setup()
     pasteButton->setText("Paste");
     pasteButton->setToolTip("Paste files");
     pasteButton->setStyleSheet("QToolButton { background-color: blue; color: white; border: 1px solid #4a4a7c; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #4169e1; } QToolButton:pressed { background-color: #191970; }");
-    connect(pasteButton, &QToolButton::clicked, this, &FileMainWindow::paste);
+    connect(pasteButton, &QToolButton::clicked, this, &FileMainWindow::pasteToActive);
     toolbar1->addWidget(pasteButton);
     
     QToolButton *deleteButton = new QToolButton();
@@ -258,8 +258,6 @@ void FileMainWindow::setup()
     // Status bar
     label = new QLabel(statusBar());
     statusBar()->addWidget(label);
-    progress = new QProgressBar(statusBar());
-    statusBar()->addWidget(progress);
     
     // Apply default theme after all widgets are created
     currentTheme = "Default";
@@ -365,11 +363,31 @@ void FileMainWindow::activatePane(QtFileIconView *targetPane, int &targetSelecte
 
 void FileMainWindow::leftPaneClicked(const QModelIndex &index)
 {
+    // Check if Ctrl is pressed - if so, don't activate pane (let ExtendedSelection handle it)
+    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+        // Just switch active pane if it's not already active, but don't change selection
+        if (activePane != leftPane) {
+            activePane = leftPane;
+            activePane->setFocus();
+            updatePaneStyles();
+        }
+        return;
+    }
     activatePane(leftPane, leftPaneSelectedRow, index);
 }
 
 void FileMainWindow::rightPaneClicked(const QModelIndex &index)
 {
+    // Check if Ctrl is pressed - if so, don't activate pane (let ExtendedSelection handle it)
+    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+        // Just switch active pane if it's not already active, but don't change selection
+        if (activePane != rightPane) {
+            activePane = rightPane;
+            activePane->setFocus();
+            updatePaneStyles();
+        }
+        return;
+    }
     activatePane(rightPane, rightPaneSelectedRow, index);
 }
 
@@ -453,9 +471,9 @@ void FileMainWindow::newFolder()
         QDir dir;
         if (dir.mkpath(newFolderPath)) {
             activePane->viewport()->update();
-            QMessageBox::information(this, "Success", "Folder created successfully!");
+            label->setText(QString("New folder created: %1").arg(name));            
         } else {
-            QMessageBox::warning(this, "Error", "Failed to create folder!");
+            label->setText(QString("Failed to create folder: %1").arg(name));
         }
     }
 }
@@ -541,7 +559,9 @@ void FileMainWindow::paste()
         return;
     }
     
-    QString targetDir = activePane->currentDir().absolutePath();
+    // Get the opposite pane (inactive pane) as the target
+    QtFileIconView *targetPane = (activePane == leftPane) ? rightPane : leftPane;
+    QString targetDir = targetPane->currentDir().absolutePath();
     
     // Create progress dialog
     QProgressDialog *progressDialog = new QProgressDialog(this);
@@ -622,6 +642,343 @@ void FileMainWindow::paste()
             copiedFiles.clear(); // Clear after successful move
         }
         
+        // Refresh both panes to show changes
+        QtFileIconView *targetPane = (activePane == leftPane) ? rightPane : leftPane;
+        targetPane->viewport()->update();
+        activePane->viewport()->update();
+    }
+}
+
+void FileMainWindow::pasteToActive()
+{
+    if (copiedFiles.isEmpty()) {
+        QMessageBox::information(this, "Paste", "No files to paste!");
+        return;
+    }
+    
+    // Paste to active pane (current directory)
+    QString targetDir = activePane->currentDir().absolutePath();
+    
+    // Create progress dialog
+    QProgressDialog *progressDialog = new QProgressDialog(this);
+    progressDialog->setWindowTitle(isCutOperation ? "Moving Files..." : "Copying Files...");
+    progressDialog->setLabelText("Preparing file operation...");
+    progressDialog->setRange(0, copiedFiles.size());
+    progressDialog->setValue(0);
+    progressDialog->setModal(true);
+    progressDialog->show();
+    
+    QApplication::processEvents();
+    
+    bool success = true;
+    int processed = 0;
+    
+    for (const QString &sourcePath : copiedFiles) {
+        if (progressDialog->wasCanceled()) {
+            success = false;
+            break;
+        }
+        
+        QFileInfo sourceInfo(sourcePath);
+        QString targetPath = targetDir + "/" + sourceInfo.fileName();
+        
+        // Handle name conflicts
+        int counter = 1;
+        QString baseName = sourceInfo.baseName();
+        QString extension = sourceInfo.completeSuffix();
+        
+        while (QFile::exists(targetPath)) {
+            if (sourceInfo.isDir()) {
+                targetPath = targetDir + "/" + baseName + QString("_%1").arg(counter);
+            } else {
+                targetPath = targetDir + "/" + baseName + QString("_%1").arg(counter) + 
+                           (extension.isEmpty() ? "" : "." + extension);
+            }
+            counter++;
+        }
+        
+        progressDialog->setLabelText(QString("%1: %2")
+                                   .arg(isCutOperation ? "Moving" : "Copying")
+                                   .arg(sourceInfo.fileName()));
+        
+        if (sourceInfo.isDir()) {
+            // Copy/move directory recursively
+            success = copyDirectoryRecursively(sourcePath, targetPath, isCutOperation);
+        } else {
+            // Copy/move file
+            if (isCutOperation) {
+                success = QFile::rename(sourcePath, targetPath);
+            } else {
+                success = QFile::copy(sourcePath, targetPath);
+            }
+        }
+        
+        if (!success) {
+            QMessageBox::warning(this, "Error", 
+                                QString("Failed to %1 %2")
+                                .arg(isCutOperation ? "move" : "copy")
+                                .arg(sourceInfo.fileName()));
+            break;
+        }
+        
+        processed++;
+        progressDialog->setValue(processed);
+        QApplication::processEvents();
+    }
+    
+    progressDialog->close();
+    delete progressDialog;
+    
+    if (success) {
+        QString operation = isCutOperation ? "moved" : "copied";
+        label->setText(QString("Successfully %1 %2 file(s)").arg(operation).arg(processed));
+        
+        if (isCutOperation) {
+            copiedFiles.clear(); // Clear after successful move
+        }
+        
+        // Refresh active pane to show changes
+        activePane->viewport()->update();
+    }
+}
+
+void FileMainWindow::copyToOpposite()
+{
+    QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) {
+        QMessageBox::information(this, "Copy", "No files selected!");
+        return;
+    }
+    
+    // Get the opposite pane as the target
+    QtFileIconView *targetPane = (activePane == leftPane) ? rightPane : leftPane;
+    QString targetDir = targetPane->currentDir().absolutePath();
+    
+    // Collect selected files
+    QStringList filesToCopy;
+    QFileSystemModel* model = activePane->fileSystemModel();
+    
+    for (const QModelIndex &index : selected) {
+        if (index.column() == 0) {
+            QModelIndex sourceIndex = activePane->mapToSource(index);
+            if (!sourceIndex.isValid()) {
+                continue;
+            }
+            QString filePath = model->filePath(sourceIndex);
+            filesToCopy << filePath;
+        }
+    }
+    
+    if (filesToCopy.isEmpty()) {
+        return;
+    }
+    
+    // Show confirmation dialog
+    QString fileList;
+    int displayCount = qMin(filesToCopy.size(), 10);
+    for (int i = 0; i < displayCount; ++i) {
+        QFileInfo info(filesToCopy[i]);
+        fileList += info.fileName() + "\n";
+    }
+    if (filesToCopy.size() > 10) {
+        fileList += QString("... and %1 more").arg(filesToCopy.size() - 10);
+    }
+    
+    QMessageBox confirmBox(this);
+    confirmBox.setWindowTitle("Confirm Copy");
+    confirmBox.setText(QString("Copy %1 file(s) to:\n%2").arg(filesToCopy.size()).arg(targetDir));
+    confirmBox.setDetailedText(fileList);
+    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    confirmBox.setDefaultButton(QMessageBox::Yes);
+    confirmBox.setIcon(QMessageBox::Question);
+    
+    if (confirmBox.exec() != QMessageBox::Yes) {
+        return;
+    }
+    
+    // Perform copy operation
+    QProgressDialog *progressDialog = new QProgressDialog(this);
+    progressDialog->setWindowTitle("Copying Files...");
+    progressDialog->setLabelText("Preparing file operation...");
+    progressDialog->setRange(0, filesToCopy.size());
+    progressDialog->setValue(0);
+    progressDialog->setModal(true);
+    progressDialog->show();
+    
+    QApplication::processEvents();
+    
+    bool success = true;
+    int processed = 0;
+    
+    for (const QString &sourcePath : filesToCopy) {
+        if (progressDialog->wasCanceled()) {
+            success = false;
+            break;
+        }
+        
+        QFileInfo sourceInfo(sourcePath);
+        QString targetPath = targetDir + "/" + sourceInfo.fileName();
+        
+        // Handle name conflicts
+        int counter = 1;
+        QString baseName = sourceInfo.baseName();
+        QString extension = sourceInfo.completeSuffix();
+        
+        while (QFile::exists(targetPath)) {
+            if (sourceInfo.isDir()) {
+                targetPath = targetDir + "/" + baseName + QString("_%1").arg(counter);
+            } else {
+                targetPath = targetDir + "/" + baseName + QString("_%1").arg(counter) + 
+                           (extension.isEmpty() ? "" : "." + extension);
+            }
+            counter++;
+        }
+        
+        progressDialog->setLabelText(QString("Copying: %1").arg(sourceInfo.fileName()));
+        
+        if (sourceInfo.isDir()) {
+            success = copyDirectoryRecursively(sourcePath, targetPath, false);
+        } else {
+            success = QFile::copy(sourcePath, targetPath);
+        }
+        
+        if (!success) {
+            QMessageBox::warning(this, "Error", 
+                                QString("Failed to copy %1").arg(sourceInfo.fileName()));
+            break;
+        }
+        
+        processed++;
+        progressDialog->setValue(processed);
+        QApplication::processEvents();
+    }
+    
+    progressDialog->close();
+    delete progressDialog;
+    
+    if (success) {
+        label->setText(QString("Successfully copied %1 file(s)").arg(processed));
+        targetPane->viewport()->update();
+    }
+}
+
+void FileMainWindow::moveToOpposite()
+{
+    QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) {
+        QMessageBox::information(this, "Move", "No files selected!");
+        return;
+    }
+    
+    // Get the opposite pane as the target
+    QtFileIconView *targetPane = (activePane == leftPane) ? rightPane : leftPane;
+    QString targetDir = targetPane->currentDir().absolutePath();
+    
+    // Collect selected files
+    QStringList filesToMove;
+    QFileSystemModel* model = activePane->fileSystemModel();
+    
+    for (const QModelIndex &index : selected) {
+        if (index.column() == 0) {
+            QModelIndex sourceIndex = activePane->mapToSource(index);
+            if (!sourceIndex.isValid()) {
+                continue;
+            }
+            QString filePath = model->filePath(sourceIndex);
+            filesToMove << filePath;
+        }
+    }
+    
+    if (filesToMove.isEmpty()) {
+        return;
+    }
+    
+    // Show confirmation dialog
+    QString fileList;
+    int displayCount = qMin(filesToMove.size(), 10);
+    for (int i = 0; i < displayCount; ++i) {
+        QFileInfo info(filesToMove[i]);
+        fileList += info.fileName() + "\n";
+    }
+    if (filesToMove.size() > 10) {
+        fileList += QString("... and %1 more").arg(filesToMove.size() - 10);
+    }
+    
+    QMessageBox confirmBox(this);
+    confirmBox.setWindowTitle("Confirm Move");
+    confirmBox.setText(QString("Move %1 file(s) to:\n%2").arg(filesToMove.size()).arg(targetDir));
+    confirmBox.setDetailedText(fileList);
+    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    confirmBox.setDefaultButton(QMessageBox::Yes);
+    confirmBox.setIcon(QMessageBox::Question);
+    
+    if (confirmBox.exec() != QMessageBox::Yes) {
+        return;
+    }
+    
+    // Perform move operation
+    QProgressDialog *progressDialog = new QProgressDialog(this);
+    progressDialog->setWindowTitle("Moving Files...");
+    progressDialog->setLabelText("Preparing file operation...");
+    progressDialog->setRange(0, filesToMove.size());
+    progressDialog->setValue(0);
+    progressDialog->setModal(true);
+    progressDialog->show();
+    
+    QApplication::processEvents();
+    
+    bool success = true;
+    int processed = 0;
+    
+    for (const QString &sourcePath : filesToMove) {
+        if (progressDialog->wasCanceled()) {
+            success = false;
+            break;
+        }
+        
+        QFileInfo sourceInfo(sourcePath);
+        QString targetPath = targetDir + "/" + sourceInfo.fileName();
+        
+        // Handle name conflicts
+        int counter = 1;
+        QString baseName = sourceInfo.baseName();
+        QString extension = sourceInfo.completeSuffix();
+        
+        while (QFile::exists(targetPath)) {
+            if (sourceInfo.isDir()) {
+                targetPath = targetDir + "/" + baseName + QString("_%1").arg(counter);
+            } else {
+                targetPath = targetDir + "/" + baseName + QString("_%1").arg(counter) + 
+                           (extension.isEmpty() ? "" : "." + extension);
+            }
+            counter++;
+        }
+        
+        progressDialog->setLabelText(QString("Moving: %1").arg(sourceInfo.fileName()));
+        
+        if (sourceInfo.isDir()) {
+            success = copyDirectoryRecursively(sourcePath, targetPath, true);
+        } else {
+            success = QFile::rename(sourcePath, targetPath);
+        }
+        
+        if (!success) {
+            QMessageBox::warning(this, "Error", 
+                                QString("Failed to move %1").arg(sourceInfo.fileName()));
+            break;
+        }
+        
+        processed++;
+        progressDialog->setValue(processed);
+        QApplication::processEvents();
+    }
+    
+    progressDialog->close();
+    delete progressDialog;
+    
+    if (success) {
+        label->setText(QString("Successfully moved %1 file(s)").arg(processed));
+        targetPane->viewport()->update();
         activePane->viewport()->update();
     }
 }
@@ -718,6 +1075,35 @@ void FileMainWindow::remove()
 void FileMainWindow::showAppearanceMenu()
 {
     QMenu *menu = new QMenu(this);
+    
+    // Style the menu to match the appearance button
+    menu->setStyleSheet(
+        "QMenu {"
+        "   background-color: #2f2f2f;"
+        "   color: white;"
+        "   border: 2px solid #1a1a1a;"
+        "   border-radius: 4px;"
+        "   padding: 8px;"
+        "}"
+        "QMenu::item {"
+        "   background-color: transparent;"
+        "   padding: 6px 20px;"
+        "   border-radius: 4px;"
+        "   margin: 2px 4px;"
+        "}"
+        "QMenu::item:selected {"
+        "   background-color: #404040;"
+        "}"
+        "QMenu::item:checked {"
+        "   background-color: #1a1a1a;"
+        "   font-weight: bold;"
+        "}"
+        "QMenu::separator {"
+        "   height: 2px;"
+        "   background-color: #1a1a1a;"
+        "   margin: 4px 8px;"
+        "}"
+    );
     
     // Create theme actions
     QStringList themes;
@@ -1279,6 +1665,16 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
             }
             break;
             
+        case Qt::Key_F5:
+            // Copy selected files to opposite pane
+            copyToOpposite();
+            break;
+            
+        case Qt::Key_F6:
+            // Move selected files to opposite pane
+            moveToOpposite();
+            break;
+            
         case Qt::Key_F7:
             // Create new directory
             newFolder();
@@ -1319,8 +1715,8 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
             
         case Qt::Key_V:
             if (event->modifiers() & Qt::ControlModifier) {
-                // Ctrl+V: Paste files
-                paste();
+                // Ctrl+V: Paste files to active pane
+                pasteToActive();
             } else {
                 QMainWindow::keyPressEvent(event);
             }
@@ -1328,8 +1724,8 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
             
         case Qt::Key_Insert:
             if (event->modifiers() & Qt::ShiftModifier) {
-                // Shift+Insert: Paste files
-                paste();
+                // Shift+Insert: Paste files to active pane
+                pasteToActive();
             } else {
                 QMainWindow::keyPressEvent(event);
             }

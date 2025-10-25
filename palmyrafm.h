@@ -12,7 +12,6 @@
 #include <QDrag>
 #include <QStandardItem>
 #include <QFileSystemModel>
-#include <QProgressBar>
 #include <QLabel>
 #include <QComboBox>
 #include <QToolButton>
@@ -65,7 +64,6 @@ protected:
     QtFileIconView *leftPane;
     QtFileIconView *rightPane;
     QtFileIconView *activePane;
-    QProgressBar *progress;
     QLabel *label;
     QLineEdit *leftPathEdit;  
     QLineEdit *rightPathEdit;
@@ -102,6 +100,9 @@ protected slots:
     void cut();
     void copy();
     void paste();
+    void pasteToActive();
+    void copyToOpposite();
+    void moveToOpposite();
     void rename();
     void remove();
     void about();
