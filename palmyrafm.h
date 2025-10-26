@@ -107,6 +107,7 @@ protected slots:
     void moveToOpposite();
     void rename();
     void remove();
+    void selectByPattern();
     void about();
     void showAppearanceMenu();
 

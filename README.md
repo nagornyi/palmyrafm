@@ -299,12 +299,14 @@ sudo make uninstall
 ### Core Functionality
 
 - **Dual-pane interface** with directory tree and file list
-- **Complete file operations**: copy, cut, paste, delete, new folder
+- **Complete file operations**: copy, cut, paste, delete, new folder, rename
 - **Progress dialogs** for long-running operations
 - **Native Qt6 APIs** for reliable file handling
 
 ### Keyboard Shortcuts
 
+- **F1**: Show About dialog
+- **Tab**: Switch between left and right panels
 - **Backspace**: Go up directory
 - **Enter**: Enter directory or open file
 - **F7**: Create new directory
@@ -312,6 +314,10 @@ sudo make uninstall
 - **Ctrl+C**: Copy files
 - **Ctrl+X**: Cut files  
 - **Ctrl+V / Shift+Insert**: Paste files
+- **F5**: Copy selected files to opposite pane
+- **F6**: Move selected files to opposite pane
+- **Shift+F6**: Rename selected file
+- **Ctrl+S**: Select files by pattern
 - **F1**: About dialog (includes key bindings reference)
 - **F10**: Exit application
 

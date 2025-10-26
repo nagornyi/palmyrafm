@@ -1234,20 +1234,34 @@ void FileMainWindow::rename()
     dialog.setWindowTitle("Rename");
     dialog.setModal(true);
     
-    // Apply dynamic sizing based on font
-    if (currentFontSize >= 16) {
-        dialog.resize(750, 200);
-    } else {
-        dialog.resize(550, 150);
-    }
+    // Set fixed dialog width
+    dialog.setFixedWidth(550);
     
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
     
     QLabel *promptLabel = new QLabel(QString("Rename '%1' to:").arg(oldName));
+    promptLabel->setWordWrap(true);  // Enable word wrap for long filenames
+    promptLabel->setTextFormat(Qt::PlainText);  // Treat as plain text, not HTML
     layout->addWidget(promptLabel);
     
     QLineEdit *lineEdit = new QLineEdit(oldName);
-    lineEdit->selectAll();
+    
+    // Select only the filename without extension for easier renaming
+    // but keep the full filename visible
+    if (fileInfo.isDir()) {
+        // For directories, select all
+        lineEdit->selectAll();
+    } else {
+        // For files, select only the base name (without extension)
+        QString baseName = fileInfo.completeBaseName();
+        if (!baseName.isEmpty()) {
+            lineEdit->setSelection(0, baseName.length());
+        } else {
+            // If no extension (like hidden files), select all
+            lineEdit->selectAll();
+        }
+    }
+    
     layout->addWidget(lineEdit);
     
     QHBoxLayout *buttonLayout = new QHBoxLayout();
@@ -1342,10 +1356,18 @@ void FileMainWindow::remove()
         }
     }
     
+    // Build detailed file list
+    QString fileList;
+    for (const QString &filePath : filesToDelete) {
+        QFileInfo info(filePath);
+        fileList += info.fileName() + "\n";
+    }
+    
     // Confirmation dialog
     QMessageBox confirmBox(this);
     confirmBox.setWindowTitle("Confirm Delete");
     confirmBox.setText(QString("Are you sure you want to delete %1 file(s)?").arg(filesToDelete.size()));
+    confirmBox.setDetailedText(fileList);
     confirmBox.setIcon(QMessageBox::Question);
     
     QPushButton *yesButton = confirmBox.addButton(QMessageBox::Yes);
@@ -1411,6 +1433,89 @@ void FileMainWindow::remove()
     if (success) {
         label->setText(QString("Successfully deleted %1 file(s)").arg(processed));
         activePane->viewport()->update();
+    }
+}
+
+void FileMainWindow::selectByPattern()
+{
+    if (!activePane) {
+        return;
+    }
+    
+    // Create custom dialog
+    QDialog dialog(this);
+    dialog.setWindowTitle("Select by Pattern");
+    dialog.setModal(true);
+    dialog.setFixedWidth(550);
+    
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    
+    QLabel *label = new QLabel("Enter pattern (wildcards * and ? supported):");
+    layout->addWidget(label);
+    
+    QLineEdit *lineEdit = new QLineEdit("*");
+    lineEdit->selectAll();
+    layout->addWidget(lineEdit);
+    
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    
+    QPushButton *okButton = new QPushButton("OK");
+    QPushButton *cancelButton = new QPushButton("Cancel");
+    
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+    layout->addLayout(buttonLayout);
+    
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+    connect(lineEdit, &QLineEdit::returnPressed, &dialog, &QDialog::accept);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        QString pattern = lineEdit->text();
+        if (pattern.isEmpty()) {
+            return;
+        }
+        
+        // Create a wildcard matcher
+        QRegularExpression regex(QRegularExpression::wildcardToRegularExpression(pattern));
+        
+        QFileSystemModel* model = activePane->fileSystemModel();
+        QModelIndex rootIdx = activePane->rootIndex();
+        int rowCount = activePane->model()->rowCount(rootIdx);
+        
+        // Clear current selection
+        activePane->clearSelection();
+        
+        int matchCount = 0;
+        
+        // Iterate through all items and select those matching the pattern
+        for (int row = 0; row < rowCount; ++row) {
+            QModelIndex index = activePane->model()->index(row, 0, rootIdx);
+            if (!index.isValid()) {
+                continue;
+            }
+            
+            QModelIndex sourceIndex = activePane->mapToSource(index);
+            if (!sourceIndex.isValid()) {
+                continue;
+            }
+            
+            QString fileName = model->fileName(sourceIndex);
+            
+            // Skip parent directory (..)
+            if (fileName == "..") {
+                continue;
+            }
+            
+            // Check if filename matches the pattern
+            if (regex.match(fileName).hasMatch()) {
+                activePane->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+                matchCount++;
+            }
+        }
+        
+        this->label->setText(QString("Selected %1 file(s) matching pattern '%2'").arg(matchCount).arg(pattern));
     }
 }
 
@@ -2032,6 +2137,7 @@ void FileMainWindow::about()
         "<tr><td><b>Ctrl+X</b></td><td>Cut selected files</td></tr>"
         "<tr><td><b>Ctrl+C</b></td><td>Copy selected files</td></tr>"        
         "<tr><td><b>Ctrl+V</b></td><td>Paste files</td></tr>"
+        "<tr><td><b>Ctrl+S</b></td><td>Select files by pattern</td></tr>"
         "<tr><td><b>F8</b></td><td>Delete selected files</td></tr>"
         "<tr><td><b>Shift+Delete</b></td><td>Delete selected files</td></tr>"
         "<tr><td><b>F10</b></td><td>Exit application</td></tr>"
@@ -2153,6 +2259,15 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
             if (event->modifiers() & Qt::ControlModifier) {
                 // Ctrl+C: Copy files
                 copy();
+            } else {
+                QMainWindow::keyPressEvent(event);
+            }
+            break;
+            
+        case Qt::Key_S:
+            if (event->modifiers() & Qt::ControlModifier) {
+                // Ctrl+S: Select files by pattern
+                selectByPattern();
             } else {
                 QMainWindow::keyPressEvent(event);
             }
