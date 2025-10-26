@@ -68,10 +68,12 @@ protected:
     QLineEdit *leftPathEdit;  
     QLineEdit *rightPathEdit;
     QToolButton *upButton, *mkdirButton;
+    QList<QToolButton*> toolbarButtons;  // All toolbar buttons for font updates
     QString currentTheme;
     QString currentPaneStyle;
     int leftPaneSelectedRow;
     int rightPaneSelectedRow;
+    int currentFontSize;
 
     // Colors for active/inactive path displays
     QString activePathColor;
@@ -111,6 +113,8 @@ protected slots:
 private:
     QStringList copiedFiles;
     bool isCutOperation;
+    QString leftPaneCurrentDir;
+    QString rightPaneCurrentDir;
     
     void activatePane(QtFileIconView *targetPane, int &targetSelectedRow, const QModelIndex &requestedIndex);
     bool copyDirectoryRecursively(const QString &sourceDir, const QString &targetDir, bool moveOperation = false);

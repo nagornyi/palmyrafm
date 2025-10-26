@@ -39,6 +39,7 @@
 #include <QStandardItemModel>
 #include <QModelIndex>
 #include <QUrl>
+#include <QSettings>
 #include <QIcon>
 #include <QFileSystemModel>
 #include <QProgressDialog>
@@ -56,6 +57,10 @@
 #include <QItemSelection>
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
+#include <QListWidget>
+#include <QRadioButton>
+#include <QButtonGroup>
+#include <QFrame>
 #include <cstdlib>
 
 /*****************************************************************************
@@ -65,7 +70,7 @@
  *****************************************************************************/
 
 FileMainWindow::FileMainWindow() 
-: QMainWindow(), leftPaneSelectedRow(0), rightPaneSelectedRow(0), isCutOperation(false)
+: QMainWindow(), leftPaneSelectedRow(0), rightPaneSelectedRow(0), currentFontSize(13), isCutOperation(false)
 {
     setup();
 }
@@ -177,6 +182,7 @@ void FileMainWindow::setup()
     homeButton->setStyleSheet("QToolButton { background-color: #006080; color: white; border: 1px solid #004060; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #0080a0; } QToolButton:pressed { background-color: #004050; }");
     connect(homeButton, &QToolButton::clicked, this, &FileMainWindow::goHome);
     toolbar1->addWidget(homeButton);
+    toolbarButtons.append(homeButton);
     
     // Up button
     upButton = new QToolButton();
@@ -185,6 +191,7 @@ void FileMainWindow::setup()
     upButton->setStyleSheet("QToolButton { background-color: #006080; color: white; border: 1px solid #004060; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #0080a0; } QToolButton:pressed { background-color: #004050; }");
     connect(upButton, &QToolButton::clicked, this, &FileMainWindow::cdUp);
     toolbar1->addWidget(upButton);
+    toolbarButtons.append(upButton);
     
     // New folder button
     mkdirButton = new QToolButton();
@@ -193,6 +200,7 @@ void FileMainWindow::setup()
     mkdirButton->setStyleSheet("QToolButton { background-color: #006080; color: white; border: 1px solid #004060; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #0080a0; } QToolButton:pressed { background-color: #004050; }");
     connect(mkdirButton, &QToolButton::clicked, this, &FileMainWindow::newFolder);
     toolbar1->addWidget(mkdirButton);
+    toolbarButtons.append(mkdirButton);
     
     toolbar1->addSeparator();
     
@@ -203,6 +211,7 @@ void FileMainWindow::setup()
     cutButton->setStyleSheet("QToolButton { background-color: orange; color: white; border: 1px solid #d4651f; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #ff8c00; } QToolButton:pressed { background-color: #cc5500; }");
     connect(cutButton, &QToolButton::clicked, this, &FileMainWindow::cut);
     toolbar1->addWidget(cutButton);
+    toolbarButtons.append(cutButton);
     
     QToolButton *copyButton = new QToolButton();
     copyButton->setText("Copy");
@@ -210,6 +219,7 @@ void FileMainWindow::setup()
     copyButton->setStyleSheet("QToolButton { background-color: green; color: white; border: 1px solid #4a7c4a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #32cd32; } QToolButton:pressed { background-color: #228b22; }");
     connect(copyButton, &QToolButton::clicked, this, &FileMainWindow::copy);
     toolbar1->addWidget(copyButton);
+    toolbarButtons.append(copyButton);
     
     QToolButton *pasteButton = new QToolButton();
     pasteButton->setText("Paste");
@@ -217,6 +227,15 @@ void FileMainWindow::setup()
     pasteButton->setStyleSheet("QToolButton { background-color: blue; color: white; border: 1px solid #4a4a7c; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #4169e1; } QToolButton:pressed { background-color: #191970; }");
     connect(pasteButton, &QToolButton::clicked, this, &FileMainWindow::pasteToActive);
     toolbar1->addWidget(pasteButton);
+    toolbarButtons.append(pasteButton);
+    
+    QToolButton *renameButton = new QToolButton();
+    renameButton->setText("Rename");
+    renameButton->setToolTip("Rename selected file (Shift-F6)");
+    renameButton->setStyleSheet("QToolButton { background-color: navy; color: white; border: 1px solid #4a4a7c; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #1e3a8a; } QToolButton:pressed { background-color: #000080; }");
+    connect(renameButton, &QToolButton::clicked, this, &FileMainWindow::rename);
+    toolbar1->addWidget(renameButton);
+    toolbarButtons.append(renameButton);
     
     QToolButton *deleteButton = new QToolButton();
     deleteButton->setText("Delete");
@@ -224,16 +243,18 @@ void FileMainWindow::setup()
     deleteButton->setStyleSheet("QToolButton { background-color: red; color: white; border: 1px solid #7c4a4a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #dc143c; } QToolButton:pressed { background-color: #8b0000; }");
     connect(deleteButton, &QToolButton::clicked, this, &FileMainWindow::remove);
     toolbar1->addWidget(deleteButton);
+    toolbarButtons.append(deleteButton);
     
     toolbar1->addSeparator();
     
     // Appearance button
     QToolButton *appearanceButton = new QToolButton();
     appearanceButton->setText("Appearance");
-    appearanceButton->setToolTip("Change color theme");
+    appearanceButton->setToolTip("Change color theme and font size");
     appearanceButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
     connect(appearanceButton, &QToolButton::clicked, this, &FileMainWindow::showAppearanceMenu);
     toolbar1->addWidget(appearanceButton);
+    toolbarButtons.append(appearanceButton);
     
     // About button
     QToolButton *aboutButton = new QToolButton();
@@ -242,6 +263,7 @@ void FileMainWindow::setup()
     aboutButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
     connect(aboutButton, &QToolButton::clicked, this, &FileMainWindow::about);
     toolbar1->addWidget(aboutButton);
+    toolbarButtons.append(aboutButton);
     
     toolbar1->addSeparator();
     
@@ -252,6 +274,7 @@ void FileMainWindow::setup()
     exitButton->setStyleSheet("QToolButton { background-color: #2f2f2f; color: white; border: 1px solid #1a1a1a; border-radius: 4px; padding: 4px; } QToolButton:hover { background-color: #404040; } QToolButton:pressed { background-color: #1a1a1a; }");
     connect(exitButton, &QToolButton::clicked, this, &QWidget::close);
     toolbar1->addWidget(exitButton);
+    toolbarButtons.append(exitButton);
     
     // We no longer need a separate path toolbar as path displays are now above each pane
     
@@ -259,17 +282,73 @@ void FileMainWindow::setup()
     label = new QLabel(statusBar());
     statusBar()->addWidget(label);
     
-    // Apply default theme after all widgets are created
-    currentTheme = "Default";
+    // Load saved settings
+    QSettings settings("PalmyraFM", "PalmyraFM");
+    currentTheme = settings.value("theme", "Default").toString();
+    currentFontSize = settings.value("fontSize", 13).toInt();
+    
+    // Apply saved theme
     applyTheme(currentTheme);
     
-    // Select first row in active pane
-    QTimer::singleShot(0, this, [this]() {
-        if (activePane && activePane->model()->rowCount() > 0) {
-            QModelIndex index = activePane->model()->index(0, 0);
-            activePane->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-            leftPaneSelectedRow = 0;
+    // Apply saved font size to all widgets including dialogs
+    QFont appFont;
+    appFont.setPointSize(currentFontSize);
+    
+    // Set application-wide font (applies to all dialogs automatically)
+    QApplication::setFont(appFont);
+    
+    // Apply to panes
+    leftPane->setFont(appFont);
+    rightPane->setFont(appFont);
+    
+    // Apply to path displays
+    leftPathEdit->setFont(appFont);
+    rightPathEdit->setFont(appFont);
+    
+    // Apply to headers
+    leftPane->header()->setFont(appFont);
+    rightPane->header()->setFont(appFont);
+    
+    // Apply to toolbar buttons
+    for (QToolButton *button : toolbarButtons) {
+        button->setFont(appFont);
+    }
+    
+    // Apply to status bar
+    label->setFont(appFont);
+    
+    // Select first row in both panes at startup
+    QTimer::singleShot(50, this, [this]() {
+        // Select row 0 in left pane
+        QModelIndex leftRootIdx = leftPane->rootIndex();
+        int leftRowCount = leftPane->model()->rowCount(leftRootIdx);
+        if (leftRowCount > 0) {
+            QModelIndex leftIndex = leftPane->model()->index(0, 0, leftRootIdx);
+            if (leftIndex.isValid()) {
+                leftPane->clearSelection();
+                leftPane->setCurrentIndex(leftIndex);
+                leftPane->selectionModel()->setCurrentIndex(leftIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+                leftPane->scrollTo(leftIndex, QAbstractItemView::EnsureVisible);
+                leftPaneSelectedRow = 0;
+            }
         }
+        
+        // Select row 0 in right pane
+        QModelIndex rightRootIdx = rightPane->rootIndex();
+        int rightRowCount = rightPane->model()->rowCount(rightRootIdx);
+        if (rightRowCount > 0) {
+            QModelIndex rightIndex = rightPane->model()->index(0, 0, rightRootIdx);
+            if (rightIndex.isValid()) {
+                rightPane->clearSelection();
+                rightPane->setCurrentIndex(rightIndex);
+                rightPane->selectionModel()->setCurrentIndex(rightIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+                rightPane->scrollTo(rightIndex, QAbstractItemView::EnsureVisible);
+                rightPaneSelectedRow = 0;
+            }
+        }
+        
+        // Activate left pane to show the selection
+        activatePane(leftPane, leftPaneSelectedRow, QModelIndex());
     });
 }
 
@@ -400,21 +479,35 @@ void FileMainWindow::leftPaneDirectoryChanged(const QString &dir)
         setWindowTitle(dir);
         setPathCombo();
     }
-    // Reset selection to first item on directory change
-    leftPaneSelectedRow = 0;
-    QTimer::singleShot(0, this, [this]() {
-        if (leftPane->model()->rowCount() > 0) {
-            QModelIndex index = leftPane->model()->index(0, 0);
-            if (activePane == leftPane) {
-                leftPane->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    
+    // Only auto-select first item if directory actually changed (not just pane switching)
+    bool dirChanged = (leftPaneCurrentDir != dir);
+    leftPaneCurrentDir = dir;
+    
+    if (dirChanged) {
+        // Select first item when directory loads
+        // Use a short delay to ensure model is populated
+        QTimer::singleShot(50, this, [this]() {
+            QModelIndex rootIdx = leftPane->rootIndex();
+            int rowCount = leftPane->model()->rowCount(rootIdx);
+            
+            if (rowCount > 0) {
+                leftPaneSelectedRow = 0;
+                QModelIndex index = leftPane->model()->index(0, 0, rootIdx);
+                if (index.isValid()) {
+                    leftPane->clearSelection();
+                    leftPane->setCurrentIndex(index);
+                    leftPane->selectionModel()->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+                    leftPane->scrollTo(index, QAbstractItemView::EnsureVisible);
+                }
+            } else {
+                leftPaneSelectedRow = -1;
+                if (leftPane->selectionModel()) {
+                    leftPane->selectionModel()->clearSelection();
+                }
             }
-        } else {
-            leftPaneSelectedRow = -1;
-            if (leftPane->selectionModel()) {
-                leftPane->selectionModel()->clearSelection();
-            }
-        }
-    });
+        });
+    }
 }
 
 void FileMainWindow::rightPaneDirectoryChanged(const QString &dir)
@@ -426,21 +519,35 @@ void FileMainWindow::rightPaneDirectoryChanged(const QString &dir)
         setWindowTitle(dir);
         setPathCombo();
     }
-    // Reset selection to first item on directory change
-    rightPaneSelectedRow = 0;
-    QTimer::singleShot(0, this, [this]() {
-        if (rightPane->model()->rowCount() > 0) {
-            QModelIndex index = rightPane->model()->index(0, 0);
-            if (activePane == rightPane) {
-                rightPane->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    
+    // Only auto-select first item if directory actually changed (not just pane switching)
+    bool dirChanged = (rightPaneCurrentDir != dir);
+    rightPaneCurrentDir = dir;
+    
+    if (dirChanged) {
+        // Select first item when directory loads
+        // Use a short delay to ensure model is populated
+        QTimer::singleShot(50, this, [this]() {
+            QModelIndex rootIdx = rightPane->rootIndex();
+            int rowCount = rightPane->model()->rowCount(rootIdx);
+            
+            if (rowCount > 0) {
+                rightPaneSelectedRow = 0;
+                QModelIndex index = rightPane->model()->index(0, 0, rootIdx);
+                if (index.isValid()) {
+                    rightPane->clearSelection();
+                    rightPane->setCurrentIndex(index);
+                    rightPane->selectionModel()->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+                    rightPane->scrollTo(index, QAbstractItemView::EnsureVisible);
+                }
+            } else {
+                rightPaneSelectedRow = -1;
+                if (rightPane->selectionModel()) {
+                    rightPane->selectionModel()->clearSelection();
+                }
             }
-        } else {
-            rightPaneSelectedRow = -1;
-            if (rightPane->selectionModel()) {
-                rightPane->selectionModel()->clearSelection();
-            }
-        }
-    });
+        });
+    }
 }
 
 void FileMainWindow::cdUp()
@@ -460,20 +567,47 @@ void FileMainWindow::goHome()
 
 void FileMainWindow::newFolder()
 {
-    bool ok;
-    QString name = QInputDialog::getText(this, "New Folder", 
-                                       "Enter folder name:", QLineEdit::Normal, 
-                                       "New Folder", &ok);
-    if (ok && !name.isEmpty()) {
-        QString currentPath = activePane->currentDir().absolutePath();
-        QString newFolderPath = currentPath + "/" + name;
-        
-        QDir dir;
-        if (dir.mkpath(newFolderPath)) {
-            activePane->viewport()->update();
-            label->setText(QString("New folder created: %1").arg(name));            
-        } else {
-            label->setText(QString("Failed to create folder: %1").arg(name));
+    // Create custom dialog to avoid button icons
+    QDialog dialog(this);
+    dialog.setWindowTitle("New Folder");
+    dialog.setModal(true);
+    
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    
+    QLabel *label = new QLabel("Enter folder name:");
+    layout->addWidget(label);
+    
+    QLineEdit *lineEdit = new QLineEdit("New Folder");
+    lineEdit->selectAll();
+    layout->addWidget(lineEdit);
+    
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    
+    QPushButton *okButton = new QPushButton("OK");
+    QPushButton *cancelButton = new QPushButton("Cancel");
+    
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+    layout->addLayout(buttonLayout);
+    
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+    connect(lineEdit, &QLineEdit::returnPressed, &dialog, &QDialog::accept);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        QString name = lineEdit->text();
+        if (!name.isEmpty()) {
+            QString currentPath = activePane->currentDir().absolutePath();
+            QString newFolderPath = currentPath + "/" + name;
+            
+            QDir dir;
+            if (dir.mkpath(newFolderPath)) {
+                activePane->viewport()->update();
+                this->label->setText(QString("New folder created: %1").arg(name));            
+            } else {
+                this->label->setText(QString("Failed to create folder: %1").arg(name));
+            }
         }
     }
 }
@@ -482,7 +616,13 @@ void FileMainWindow::cut()
 {
     QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
-        QMessageBox::information(this, "Cut", "No files selected!");
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Cut");
+        msgBox.setText("No files selected!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
         return;
     }
     
@@ -519,7 +659,13 @@ void FileMainWindow::copy()
 {
     QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
-        QMessageBox::information(this, "Copy", "No files selected!");
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Copy");
+        msgBox.setText("No files selected!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
         return;
     }
     
@@ -555,7 +701,13 @@ void FileMainWindow::copy()
 void FileMainWindow::paste()
 {
     if (copiedFiles.isEmpty()) {
-        QMessageBox::information(this, "Paste", "No files to paste!");
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Paste");
+        msgBox.setText("No files to paste!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
         return;
     }
     
@@ -570,9 +722,7 @@ void FileMainWindow::paste()
     progressDialog->setRange(0, copiedFiles.size());
     progressDialog->setValue(0);
     progressDialog->setModal(true);
-    progressDialog->show();
-    
-    QApplication::processEvents();
+    progressDialog->setMinimumDuration(500);  // Only show if operation takes longer than 500ms
     
     bool success = true;
     int processed = 0;
@@ -619,11 +769,18 @@ void FileMainWindow::paste()
         }
         
         if (!success) {
-            QMessageBox::warning(this, "Error", 
-                                QString("Failed to %1 %2")
-                                .arg(isCutOperation ? "move" : "copy")
-                                .arg(sourceInfo.fileName()));
-            break;
+            progressDialog->close();
+            delete progressDialog;
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText(QString("Failed to %1 %2")
+                          .arg(isCutOperation ? "move" : "copy")
+                          .arg(sourceInfo.fileName()));
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+            return;
         }
         
         processed++;
@@ -652,7 +809,13 @@ void FileMainWindow::paste()
 void FileMainWindow::pasteToActive()
 {
     if (copiedFiles.isEmpty()) {
-        QMessageBox::information(this, "Paste", "No files to paste!");
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Paste");
+        msgBox.setText("No files to paste!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
         return;
     }
     
@@ -666,9 +829,7 @@ void FileMainWindow::pasteToActive()
     progressDialog->setRange(0, copiedFiles.size());
     progressDialog->setValue(0);
     progressDialog->setModal(true);
-    progressDialog->show();
-    
-    QApplication::processEvents();
+    progressDialog->setMinimumDuration(500);  // Only show if operation takes longer than 500ms
     
     bool success = true;
     int processed = 0;
@@ -714,11 +875,18 @@ void FileMainWindow::pasteToActive()
         }
         
         if (!success) {
-            QMessageBox::warning(this, "Error", 
-                                QString("Failed to %1 %2")
-                                .arg(isCutOperation ? "move" : "copy")
-                                .arg(sourceInfo.fileName()));
-            break;
+            progressDialog->close();
+            delete progressDialog;
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText(QString("Failed to %1 %2")
+                          .arg(isCutOperation ? "move" : "copy")
+                          .arg(sourceInfo.fileName()));
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+            return;
         }
         
         processed++;
@@ -746,7 +914,13 @@ void FileMainWindow::copyToOpposite()
 {
     QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
-        QMessageBox::information(this, "Copy", "No files selected!");
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Copy");
+        msgBox.setText("No files selected!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
         return;
     }
     
@@ -788,9 +962,13 @@ void FileMainWindow::copyToOpposite()
     confirmBox.setWindowTitle("Confirm Copy");
     confirmBox.setText(QString("Copy %1 file(s) to:\n%2").arg(filesToCopy.size()).arg(targetDir));
     confirmBox.setDetailedText(fileList);
-    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    confirmBox.setDefaultButton(QMessageBox::Yes);
     confirmBox.setIcon(QMessageBox::Question);
+    
+    QPushButton *yesButton = confirmBox.addButton(QMessageBox::Yes);
+    QPushButton *noButton = confirmBox.addButton(QMessageBox::No);
+    yesButton->setIcon(QIcon());  // Remove icon
+    noButton->setIcon(QIcon());   // Remove icon
+    confirmBox.setDefaultButton(yesButton);
     
     if (confirmBox.exec() != QMessageBox::Yes) {
         return;
@@ -803,9 +981,7 @@ void FileMainWindow::copyToOpposite()
     progressDialog->setRange(0, filesToCopy.size());
     progressDialog->setValue(0);
     progressDialog->setModal(true);
-    progressDialog->show();
-    
-    QApplication::processEvents();
+    progressDialog->setMinimumDuration(500);  // Only show if operation takes longer than 500ms
     
     bool success = true;
     int processed = 0;
@@ -843,9 +1019,16 @@ void FileMainWindow::copyToOpposite()
         }
         
         if (!success) {
-            QMessageBox::warning(this, "Error", 
-                                QString("Failed to copy %1").arg(sourceInfo.fileName()));
-            break;
+            progressDialog->close();
+            delete progressDialog;
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText(QString("Failed to copy %1").arg(sourceInfo.fileName()));
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+            return;
         }
         
         processed++;
@@ -853,7 +1036,6 @@ void FileMainWindow::copyToOpposite()
         QApplication::processEvents();
     }
     
-    progressDialog->close();
     delete progressDialog;
     
     if (success) {
@@ -866,7 +1048,13 @@ void FileMainWindow::moveToOpposite()
 {
     QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
-        QMessageBox::information(this, "Move", "No files selected!");
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Move");
+        msgBox.setText("No files selected!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
         return;
     }
     
@@ -908,9 +1096,13 @@ void FileMainWindow::moveToOpposite()
     confirmBox.setWindowTitle("Confirm Move");
     confirmBox.setText(QString("Move %1 file(s) to:\n%2").arg(filesToMove.size()).arg(targetDir));
     confirmBox.setDetailedText(fileList);
-    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    confirmBox.setDefaultButton(QMessageBox::Yes);
     confirmBox.setIcon(QMessageBox::Question);
+    
+    QPushButton *yesButton = confirmBox.addButton(QMessageBox::Yes);
+    QPushButton *noButton = confirmBox.addButton(QMessageBox::No);
+    yesButton->setIcon(QIcon());  // Remove icon
+    noButton->setIcon(QIcon());   // Remove icon
+    confirmBox.setDefaultButton(yesButton);
     
     if (confirmBox.exec() != QMessageBox::Yes) {
         return;
@@ -923,9 +1115,7 @@ void FileMainWindow::moveToOpposite()
     progressDialog->setRange(0, filesToMove.size());
     progressDialog->setValue(0);
     progressDialog->setModal(true);
-    progressDialog->show();
-    
-    QApplication::processEvents();
+    progressDialog->setMinimumDuration(500);  // Only show if operation takes longer than 500ms
     
     bool success = true;
     int processed = 0;
@@ -963,9 +1153,16 @@ void FileMainWindow::moveToOpposite()
         }
         
         if (!success) {
-            QMessageBox::warning(this, "Error", 
-                                QString("Failed to move %1").arg(sourceInfo.fileName()));
-            break;
+            progressDialog->close();
+            delete progressDialog;
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText(QString("Failed to move %1").arg(sourceInfo.fileName()));
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+            return;
         }
         
         processed++;
@@ -973,7 +1170,6 @@ void FileMainWindow::moveToOpposite()
         QApplication::processEvents();
     }
     
-    progressDialog->close();
     delete progressDialog;
     
     if (success) {
@@ -985,14 +1181,150 @@ void FileMainWindow::moveToOpposite()
 
 void FileMainWindow::rename()
 {
-    QMessageBox::information(this, "Rename", "Rename functionality");
+    QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Rename");
+        msgBox.setText("No file selected!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
+        return;
+    }
+    
+    // Get only the first selected item
+    QModelIndex index = selected.first();
+    if (index.column() != 0) {
+        // Find the first column index for this row
+        index = selected.first().sibling(selected.first().row(), 0);
+    }
+    
+    QModelIndex sourceIndex = activePane->mapToSource(index);
+    if (!sourceIndex.isValid()) {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Rename");
+        msgBox.setText("Invalid selection!");
+        msgBox.setIcon(QMessageBox::Warning);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
+        return;
+    }
+    
+    QFileSystemModel* model = activePane->fileSystemModel();
+    QString oldPath = model->filePath(sourceIndex);
+    QFileInfo fileInfo(oldPath);
+    QString oldName = fileInfo.fileName();
+    
+    // Don't allow renaming parent directory (..)
+    if (oldName == "..") {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Rename");
+        msgBox.setText("Cannot rename parent directory!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
+        return;
+    }
+    
+    // Create custom dialog to avoid button icons
+    QDialog dialog(this);
+    dialog.setWindowTitle("Rename");
+    dialog.setModal(true);
+    
+    // Apply dynamic sizing based on font
+    if (currentFontSize >= 16) {
+        dialog.resize(750, 200);
+    } else {
+        dialog.resize(550, 150);
+    }
+    
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    
+    QLabel *promptLabel = new QLabel(QString("Rename '%1' to:").arg(oldName));
+    layout->addWidget(promptLabel);
+    
+    QLineEdit *lineEdit = new QLineEdit(oldName);
+    lineEdit->selectAll();
+    layout->addWidget(lineEdit);
+    
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    
+    QPushButton *okButton = new QPushButton("OK");
+    QPushButton *cancelButton = new QPushButton("Cancel");
+    
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+    layout->addLayout(buttonLayout);
+    
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+    connect(lineEdit, &QLineEdit::returnPressed, &dialog, &QDialog::accept);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        QString newName = lineEdit->text();
+        if (newName.isEmpty()) {
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Rename");
+            msgBox.setText("File name cannot be empty!");
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+            return;
+        }
+        
+        if (newName == oldName) {
+            // No change
+            return;
+        }
+        
+        QString parentDir = fileInfo.absolutePath();
+        QString newPath = parentDir + "/" + newName;
+        
+        // Check if target already exists
+        if (QFile::exists(newPath)) {
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Rename");
+            msgBox.setText(QString("A file or folder named '%1' already exists!").arg(newName));
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+            return;
+        }
+        
+        // Perform the rename
+        QFile file(oldPath);
+        if (file.rename(newPath)) {
+            activePane->viewport()->update();
+            label->setText(QString("Renamed '%1' to '%2'").arg(oldName, newName));
+        } else {
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Rename");
+            msgBox.setText(QString("Failed to rename '%1'").arg(oldName));
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+        }
+    }
 }
 
 void FileMainWindow::remove()
 {
     QModelIndexList selected = activePane->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
-        QMessageBox::information(this, "Delete", "No files selected!");
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Delete");
+        msgBox.setText("No files selected!");
+        msgBox.setIcon(QMessageBox::Information);
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        okButton->setIcon(QIcon());
+        msgBox.exec();
         return;
     }
     
@@ -1011,13 +1343,18 @@ void FileMainWindow::remove()
     }
     
     // Confirmation dialog
-    int ret = QMessageBox::question(this, "Confirm Delete", 
-                                   QString("Are you sure you want to delete %1 file(s)?")
-                                   .arg(filesToDelete.size()),
-                                   QMessageBox::Yes | QMessageBox::No,
-                                   QMessageBox::No);
+    QMessageBox confirmBox(this);
+    confirmBox.setWindowTitle("Confirm Delete");
+    confirmBox.setText(QString("Are you sure you want to delete %1 file(s)?").arg(filesToDelete.size()));
+    confirmBox.setIcon(QMessageBox::Question);
     
-    if (ret != QMessageBox::Yes) {
+    QPushButton *yesButton = confirmBox.addButton(QMessageBox::Yes);
+    QPushButton *noButton = confirmBox.addButton(QMessageBox::No);
+    yesButton->setIcon(QIcon());  // Remove icon
+    noButton->setIcon(QIcon());   // Remove icon
+    confirmBox.setDefaultButton(noButton);
+    
+    if (confirmBox.exec() != QMessageBox::Yes) {
         return;
     }
     
@@ -1028,9 +1365,7 @@ void FileMainWindow::remove()
     progressDialog->setRange(0, filesToDelete.size());
     progressDialog->setValue(0);
     progressDialog->setModal(true);
-    progressDialog->show();
-    
-    QApplication::processEvents();
+    progressDialog->setMinimumDuration(500);  // Only show if operation takes longer than 500ms
     
     bool success = true;
     int processed = 0;
@@ -1053,9 +1388,16 @@ void FileMainWindow::remove()
         }
         
         if (!success) {
-            QMessageBox::warning(this, "Error", 
-                                QString("Failed to delete %1").arg(fileInfo.fileName()));
-            break;
+            progressDialog->close();
+            delete progressDialog;
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText(QString("Failed to delete %1").arg(fileInfo.fileName()));
+            msgBox.setIcon(QMessageBox::Warning);
+            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+            okButton->setIcon(QIcon());
+            msgBox.exec();
+            return;
         }
         
         processed++;
@@ -1074,55 +1416,156 @@ void FileMainWindow::remove()
 
 void FileMainWindow::showAppearanceMenu()
 {
-    QMenu *menu = new QMenu(this);
+    // Create a dialog for theme selection
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Appearance Settings");
+    dialog->setModal(true);
     
-    // Style the menu to match the appearance button
-    menu->setStyleSheet(
-        "QMenu {"
-        "   background-color: #2f2f2f;"
-        "   color: white;"
-        "   border: 2px solid #1a1a1a;"
-        "   border-radius: 4px;"
-        "   padding: 8px;"
-        "}"
-        "QMenu::item {"
-        "   background-color: transparent;"
-        "   padding: 6px 20px;"
-        "   border-radius: 4px;"
-        "   margin: 2px 4px;"
-        "}"
-        "QMenu::item:selected {"
-        "   background-color: #404040;"
-        "}"
-        "QMenu::item:checked {"
-        "   background-color: #1a1a1a;"
-        "   font-weight: bold;"
-        "}"
-        "QMenu::separator {"
-        "   height: 2px;"
-        "   background-color: #1a1a1a;"
-        "   margin: 4px 8px;"
-        "}"
-    );
+    // Set fixed dialog width    
+    dialog->setFixedWidth(550);    
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(dialog);
+    mainLayout->setSpacing(10);
     
-    // Create theme actions
+    // Create horizontal layout for theme and font sections side by side
+    QHBoxLayout *contentLayout = new QHBoxLayout();
+    contentLayout->setSpacing(20);
+    // Add padding from the left and right edges
+    contentLayout->setContentsMargins(10, 0, 10, 0);
+    
+    // Left side - Theme selection section
+    QVBoxLayout *themeLayout = new QVBoxLayout();
+    QLabel *themeLabel = new QLabel("<b>Choose a color theme</b>");
+    themeLayout->addWidget(themeLabel);
+    
+    // Create button group for theme radio buttons
+    QButtonGroup *themeButtonGroup = new QButtonGroup(dialog);
+    
     QStringList themes;
     themes << "Default" << "Dark Blue" << "MC Classic" << "Sand" 
            << "Modarcon16" << "Dark Green" << "Nicedark" << "Gotar";
     
+    // Add radio buttons for each theme
     for (const QString &theme : themes) {
-        QAction *action = menu->addAction(theme);
-        action->setCheckable(true);
-        action->setChecked(theme == currentTheme);
-        connect(action, &QAction::triggered, this, [this, theme]() {
-            currentTheme = theme;
-            applyTheme(theme);
-        });
+        QRadioButton *radioButton = new QRadioButton(theme);
+        themeButtonGroup->addButton(radioButton);
+        themeLayout->addWidget(radioButton);
+        
+        if (theme == currentTheme) {
+            radioButton->setChecked(true);
+        }
+    }
+    themeLayout->addStretch();
+    contentLayout->addLayout(themeLayout);
+    
+    // Add vertical separator
+    QFrame *separator = new QFrame();
+    separator->setFrameShape(QFrame::VLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    contentLayout->addWidget(separator);
+    
+    // Right side - Font size selection section
+    QVBoxLayout *fontLayout = new QVBoxLayout();
+    QLabel *fontLabel = new QLabel("<b>Font size</b>");
+    fontLayout->addWidget(fontLabel);
+    
+    QButtonGroup *fontButtonGroup = new QButtonGroup(dialog);
+    
+    QRadioButton *normalFontButton = new QRadioButton("Normal");
+    QRadioButton *largeFontButton = new QRadioButton("Large");
+    
+    fontButtonGroup->addButton(normalFontButton);
+    fontButtonGroup->addButton(largeFontButton);
+    
+    fontLayout->addWidget(normalFontButton);
+    fontLayout->addWidget(largeFontButton);
+    
+    // Set current font size selection
+    if (currentFontSize == 13) {
+        normalFontButton->setChecked(true);
+    } else {
+        largeFontButton->setChecked(true);
     }
     
-    // Show menu at cursor position
-    menu->exec(QCursor::pos());
-    delete menu;
+    fontLayout->addStretch();
+    contentLayout->addLayout(fontLayout);
+    
+    mainLayout->addLayout(contentLayout);
+    
+    // Add spacing
+    mainLayout->addSpacing(10);
+    
+    // Add buttons
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    
+    QPushButton *okButton = new QPushButton("OK");
+    QPushButton *cancelButton = new QPushButton("Cancel");
+    
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+    mainLayout->addLayout(buttonLayout);
+    
+    // Connect signals
+    connect(okButton, &QPushButton::clicked, dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, dialog, &QDialog::reject);
+    
+    // Show dialog and apply settings if OK was clicked
+    if (dialog->exec() == QDialog::Accepted) {
+        // Apply theme
+        QAbstractButton *selectedThemeButton = themeButtonGroup->checkedButton();
+        if (selectedThemeButton) {
+            QString selectedTheme = selectedThemeButton->text();
+            currentTheme = selectedTheme;
+            applyTheme(selectedTheme);
+        }
+        
+        // Apply font size
+        if (normalFontButton->isChecked()) {
+            currentFontSize = 13;
+        } else {
+            currentFontSize = 16;
+        }
+        
+        // Save settings
+        QSettings settings("PalmyraFM", "PalmyraFM");
+        settings.setValue("theme", currentTheme);
+        settings.setValue("fontSize", currentFontSize);
+        
+        // Update font size for all widgets including dialogs
+        QFont paneFont;
+        paneFont.setPointSize(currentFontSize);
+        
+        // Set application-wide font (applies to all dialogs automatically)
+        QApplication::setFont(paneFont);
+        
+        leftPane->setFont(paneFont);
+        rightPane->setFont(paneFont);
+        
+        // Update path display fields with new font size
+        leftPathEdit->setFont(paneFont);
+        rightPathEdit->setFont(paneFont);
+        
+        // Update headers with new font size
+        leftPane->header()->setFont(paneFont);
+        rightPane->header()->setFont(paneFont);
+        
+        // Update toolbar buttons with new font size
+        for (QToolButton *button : toolbarButtons) {
+            button->setFont(paneFont);
+        }
+        
+        // Update status bar label with new font size
+        label->setFont(paneFont);
+        
+        // Force immediate re-layout and repaint with new font
+        leftPane->doItemsLayout();
+        rightPane->doItemsLayout();
+        leftPane->viewport()->update();
+        rightPane->viewport()->update();
+    }
+    
+    delete dialog;
 }
 
 void FileMainWindow::applyTheme(const QString &themeName)
@@ -1178,42 +1621,42 @@ void FileMainWindow::applyTheme(const QString &themeName)
         fileColorDefault = "#000000";    // Black for regular files
     }
     else if (themeName == "Dark Blue") {
-        // Dark blue theme - classic MC look
+        // Dark blue theme - darker blue with lighter text
         paneStyle = 
             "QTreeView {"
-            "   background-color: #000080;"
-            "   color: #00ffff;"
-            "   alternate-background-color: #000060;"
-            "   selection-background-color: #008080;"
-            "   selection-color: #ffff00;"
-            "   border: 1px solid #00ffff;"
+            "   background-color: #000050;"
+            "   color: #aaaaff;"
+            "   alternate-background-color: #000040;"
+            "   selection-background-color: #0000a0;"
+            "   selection-color: #ffffff;"
+            "   border: 1px solid #0000ff;"
             "}"
             "QHeaderView::section {"
-            "   background-color: #000080;"
-            "   color: #ffff00;"
+            "   background-color: #000060;"
+            "   color: #ffffff;"
             "   padding: 4px;"
-            "   border: 1px solid #00ffff;"
+            "   border: 1px solid #0000ff;"
             "}";
-        paneBackground = "#000080";
-        paneTextColor = "#00ffff";
-        selectionBackground = "#008080";
-        selectionForeground = "#ffff00";
+        paneBackground = "#000050";
+        paneTextColor = "#aaaaff";
+        selectionBackground = "#0000a0";
+        selectionForeground = "#ffffff";
         
         // Path colors for Dark Blue theme
-        activePathColor = "#0000a0";
-        inactivePathColor = "#000060";
-        pathTextColor = "#00ffff";
-        pathBorderColor = "#00ffff";
+        activePathColor = "#000070";
+        inactivePathColor = "#000040";
+        pathTextColor = "#aaaaff";
+        pathBorderColor = "#0000ff";
         
-        // File type colors for Dark Blue theme (MC classic)
+        // File type colors for Dark Blue theme
         fileColorDir = "#FFFFFF";        // White for directories
         fileColorExec = "#00FF00";       // Bright green for executables
-        fileColorArchive = "#FF0000";    // Bright red for archives
-        fileColorImage = "#FF00FF";      // Bright magenta for images
-        fileColorVideo = "#00FFFF";      // Bright cyan for videos
-        fileColorAudio = "#00FFFF";      // Bright cyan for audio
-        fileColorDoc = "#FFFF00";        // Bright yellow for documents
-        fileColorDefault = "#00FFFF";    // Cyan for regular files
+        fileColorArchive = "#FF6666";    // Light red for archives
+        fileColorImage = "#FF88FF";      // Light magenta for images
+        fileColorVideo = "#66DDFF";      // Light cyan for videos
+        fileColorAudio = "#66DDFF";      // Light cyan for audio
+        fileColorDoc = "#FFFF66";        // Light yellow for documents
+        fileColorDefault = "#aaaaff";    // Light blue for regular files
     }
     else if (themeName == "MC Classic") {
         // Midnight Commander classic - dark blue with cyan
@@ -1527,7 +1970,9 @@ void FileMainWindow::about()
 {
     QDialog aboutDialog(this);
     aboutDialog.setWindowTitle("About PalmyraFM");
-    aboutDialog.setFixedSize(550, 450);
+    
+    // Set fixed dialog width
+    aboutDialog.setFixedWidth(550);
     
     QVBoxLayout *mainLayout = new QVBoxLayout(&aboutDialog);
     mainLayout->setSpacing(15);
@@ -1579,7 +2024,10 @@ void FileMainWindow::about()
         "<tr><td><b>F1</b></td><td>Show this About dialog</td></tr>"
         "<tr><td><b>Tab</b></td><td>Switch between left and right panels</td></tr>"
         "<tr><td><b>Home</b></td><td>Go to home directory</td></tr>"
-        "<tr><td><b>Backspace</b></td><td>Go up directory</td></tr>"        
+        "<tr><td><b>Backspace</b></td><td>Go up directory</td></tr>"
+        "<tr><td><b>F5</b></td><td>Copy selected files to opposite pane</td></tr>"
+        "<tr><td><b>F6</b></td><td>Move selected files to opposite pane</td></tr>"
+        "<tr><td><b>Shift+F6</b></td><td>Rename selected file</td></tr>"
         "<tr><td><b>F7</b></td><td>Create new directory</td></tr>"    
         "<tr><td><b>Ctrl+X</b></td><td>Cut selected files</td></tr>"
         "<tr><td><b>Ctrl+C</b></td><td>Copy selected files</td></tr>"        
@@ -1672,9 +2120,15 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
             
         case Qt::Key_F6:
             // Move selected files to opposite pane
-            moveToOpposite();
+            if (event->modifiers() & Qt::ShiftModifier) {
+                // Shift+F6: Rename selected file
+                rename();
+            } else {
+                // F6: Move selected files to opposite pane
+                moveToOpposite();
+            }
             break;
-            
+        
         case Qt::Key_F7:
             // Create new directory
             newFolder();
@@ -2134,10 +2588,19 @@ void FileItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     
     // Draw text with prefix
     painter->setPen(textColor);
+    
+    // Set the font from the option (which comes from the view)
+    painter->setFont(opt.font);
+    
     QString displayText = prefix + index.data(Qt::DisplayRole).toString();
     
     QRect textRect = opt.rect.adjusted(5, 0, -5, 0);
-    painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, displayText);
+    
+    // Use the font for calculating elided text
+    QFontMetrics fm(opt.font);
+    QString elidedText = fm.elidedText(displayText, Qt::ElideRight, textRect.width());
+    
+    painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, elidedText);
 }
 
 /*****************************************************************************
@@ -2177,6 +2640,9 @@ QtFileIconView::QtFileIconView(const QString &dir, QWidget *parent)
     setItemsExpandable(false);
     setExpandsOnDoubleClick(false);
     setIndentation(0);
+    
+    // Enable text eliding for long filenames
+    setTextElideMode(Qt::ElideRight);
     
     // Disable scrollbars
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -2250,6 +2716,12 @@ void QtFileIconView::itemDoubleClicked(const QModelIndex &index)
 
     if (fileModel->isDir(sourceIndex)) {
         QString path = fileModel->filePath(sourceIndex);
+        // Normalize path to avoid issues like "//" when navigating to parent of root-level dirs
+        path = QDir::cleanPath(path);
+        // Ensure root directory is always "/" not ""
+        if (path.isEmpty()) {
+            path = "/";
+        }
         setDirectory(path);
     } else {
         // Open file

@@ -35,7 +35,8 @@ unix:!macx {
     uninstall.commands = \
         rm -f $$PREFIX/bin/palmyrafm && \
         rm -f /usr/share/applications/palmyrafm.desktop && \
-        rm -f /usr/share/pixmaps/palmyrafm.png
+        rm -f /usr/share/pixmaps/palmyrafm.png && \
+        rm -rf ~/.config/PalmyraFM
     uninstall.CONFIG += phony
     
     QMAKE_EXTRA_TARGETS += install uninstall
@@ -65,7 +66,8 @@ macx {
     
     # Custom uninstall target
     uninstall.target = uninstall
-    uninstall.commands = rm -rf $$PREFIX/palmyrafm.app
+    uninstall.commands = rm -rf $$PREFIX/palmyrafm.app && \
+                        rm -rf ~/Library/Preferences/PalmyraFM
     uninstall.CONFIG += phony
     
     # Create .icns from PNG (requires iconutil)
