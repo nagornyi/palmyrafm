@@ -116,6 +116,7 @@ private:
     bool isCutOperation;
     QString leftPaneCurrentDir;
     QString rightPaneCurrentDir;
+    bool pathEditNavigating;  // Flag to prevent keyPressEvent interference during path edit navigation
     
     void activatePane(QtFileIconView *targetPane, int &targetSelectedRow, const QModelIndex &requestedIndex);
     bool copyDirectoryRecursively(const QString &sourceDir, const QString &targetDir, bool moveOperation = false);

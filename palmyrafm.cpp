@@ -70,7 +70,7 @@
  *****************************************************************************/
 
 FileMainWindow::FileMainWindow() 
-: QMainWindow(), leftPaneSelectedRow(0), rightPaneSelectedRow(0), currentFontSize(13), isCutOperation(false)
+: QMainWindow(), leftPaneSelectedRow(0), rightPaneSelectedRow(0), currentFontSize(13), isCutOperation(false), pathEditNavigating(false)
 {
     setup();
 }
@@ -98,9 +98,9 @@ void FileMainWindow::setup()
     leftLayout->setSpacing(2);
     
     leftPathEdit = new QLineEdit;
-    leftPathEdit->setReadOnly(true);
-    leftPathEdit->setClearButtonEnabled(false);
-    leftPathEdit->setToolTip("Current directory in left pane");
+    leftPathEdit->setReadOnly(false);
+    leftPathEdit->setClearButtonEnabled(true);
+    leftPathEdit->setToolTip("Current directory in left pane (press Enter to navigate)");
     leftLayout->addWidget(leftPathEdit);
     
     leftPane = new QtFileIconView(QDir::homePath(), leftContainer);
@@ -116,9 +116,9 @@ void FileMainWindow::setup()
     rightLayout->setSpacing(2);
     
     rightPathEdit = new QLineEdit;
-    rightPathEdit->setReadOnly(true);
-    rightPathEdit->setClearButtonEnabled(false);
-    rightPathEdit->setToolTip("Current directory in right pane");
+    rightPathEdit->setReadOnly(false);
+    rightPathEdit->setClearButtonEnabled(true);
+    rightPathEdit->setToolTip("Current directory in right pane (press Enter to navigate)");
     rightLayout->addWidget(rightPathEdit);
     
     rightPane = new QtFileIconView(QDir::homePath(), rightContainer);
@@ -169,6 +169,85 @@ void FileMainWindow::setup()
     // Connect directory changed signals
     connect(leftPane, &QtFileIconView::directoryChanged, this, &FileMainWindow::leftPaneDirectoryChanged);
     connect(rightPane, &QtFileIconView::directoryChanged, this, &FileMainWindow::rightPaneDirectoryChanged);
+    
+    // Connect path edit returnPressed signals for manual navigation
+    connect(leftPathEdit, &QLineEdit::returnPressed, this, [this]() {
+        QString path = leftPathEdit->text().trimmed();
+        pathEditNavigating = true;  // Set flag immediately to block keyPressEvent
+        
+        QDir dir(path);
+        QFileInfo dirInfo(path);
+        
+        if (path.isEmpty()) {
+            leftPathEdit->setText(leftPaneCurrentDir);
+        } else if (!dir.exists()) {
+            // Directory doesn't exist
+            QString originalStyle = leftPathEdit->styleSheet();
+            leftPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
+            statusBar()->showMessage("Directory does not exist: " + path, 3000);
+            
+            QTimer::singleShot(500, this, [this, originalStyle]() {
+                leftPathEdit->setStyleSheet(originalStyle);
+                leftPathEdit->setText(leftPaneCurrentDir);
+            });
+        } else if (!dirInfo.isReadable()) {
+            // Directory exists but no read permission
+            QString originalStyle = leftPathEdit->styleSheet();
+            leftPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
+            statusBar()->showMessage("Permission denied: " + path, 3000);
+            
+            QTimer::singleShot(500, this, [this, originalStyle]() {
+                leftPathEdit->setStyleSheet(originalStyle);
+                leftPathEdit->setText(leftPaneCurrentDir);
+            });
+        } else {
+            // Valid and readable directory
+            leftPane->setDirectory(path);
+            activatePane(leftPane, leftPaneSelectedRow, leftPane->currentIndex());
+        }
+        
+        // Clear flag after event processing completes
+        QTimer::singleShot(0, this, [this]() { pathEditNavigating = false; });
+    });
+    
+    connect(rightPathEdit, &QLineEdit::returnPressed, this, [this]() {
+        QString path = rightPathEdit->text().trimmed();
+        pathEditNavigating = true;  // Set flag immediately to block keyPressEvent
+        
+        QDir dir(path);
+        QFileInfo dirInfo(path);
+        
+        if (path.isEmpty()) {
+            rightPathEdit->setText(rightPaneCurrentDir);
+        } else if (!dir.exists()) {
+            // Directory doesn't exist
+            QString originalStyle = rightPathEdit->styleSheet();
+            rightPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
+            statusBar()->showMessage("Directory does not exist: " + path, 3000);
+            
+            QTimer::singleShot(500, this, [this, originalStyle]() {
+                rightPathEdit->setStyleSheet(originalStyle);
+                rightPathEdit->setText(rightPaneCurrentDir);
+            });
+        } else if (!dirInfo.isReadable()) {
+            // Directory exists but no read permission
+            QString originalStyle = rightPathEdit->styleSheet();
+            rightPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
+            statusBar()->showMessage("Permission denied: " + path, 3000);
+            
+            QTimer::singleShot(500, this, [this, originalStyle]() {
+                rightPathEdit->setStyleSheet(originalStyle);
+                rightPathEdit->setText(rightPaneCurrentDir);
+            });
+        } else {
+            // Valid and readable directory
+            rightPane->setDirectory(path);
+            activatePane(rightPane, rightPaneSelectedRow, rightPane->currentIndex());
+        }
+        
+        // Clear flag after event processing completes
+        QTimer::singleShot(0, this, [this]() { pathEditNavigating = false; });
+    });
     
     setCentralWidget(splitter);
     
@@ -2138,6 +2217,7 @@ void FileMainWindow::about()
         "<tr><td><b>Ctrl+C</b></td><td>Copy selected files</td></tr>"        
         "<tr><td><b>Ctrl+V</b></td><td>Paste files</td></tr>"
         "<tr><td><b>Ctrl+S</b></td><td>Select files by pattern</td></tr>"
+        "<tr><td><b>Ctrl+A</b></td><td>Select all files</td></tr>"
         "<tr><td><b>F8</b></td><td>Delete selected files</td></tr>"
         "<tr><td><b>Shift+Delete</b></td><td>Delete selected files</td></tr>"
         "<tr><td><b>F10</b></td><td>Exit application</td></tr>"
@@ -2201,6 +2281,17 @@ void FileMainWindow::about()
 
 void FileMainWindow::keyPressEvent(QKeyEvent *event)
 {
+    // Check if we're in the middle of path edit navigation
+    if (pathEditNavigating) {
+        return;
+    }
+    
+    // Check if a path edit field has focus - if so, don't handle any shortcuts
+    if (leftPathEdit->hasFocus() || rightPathEdit->hasFocus()) {
+        QMainWindow::keyPressEvent(event);
+        return;
+    }
+    
     switch (event->key()) {
         case Qt::Key_Backspace:
             // Go up directory
@@ -2268,6 +2359,52 @@ void FileMainWindow::keyPressEvent(QKeyEvent *event)
             if (event->modifiers() & Qt::ControlModifier) {
                 // Ctrl+S: Select files by pattern
                 selectByPattern();
+            } else {
+                QMainWindow::keyPressEvent(event);
+            }
+            break;
+            
+        case Qt::Key_A:
+            if (event->modifiers() & Qt::ControlModifier) {
+                // Ctrl+A: Select all files (excluding parent directory)
+                // Prevent default selectAll behavior
+                event->accept();
+                
+                if (!activePane) {
+                    break;
+                }
+                
+                QFileSystemModel* model = activePane->fileSystemModel();
+                QModelIndex rootIdx = activePane->rootIndex();
+                int rowCount = activePane->model()->rowCount(rootIdx);
+                
+                activePane->clearSelection();
+                
+                int selectCount = 0;
+                for (int row = 0; row < rowCount; ++row) {
+                    QModelIndex index = activePane->model()->index(row, 0, rootIdx);
+                    if (!index.isValid()) {
+                        continue;
+                    }
+                    
+                    QModelIndex sourceIndex = activePane->mapToSource(index);
+                    if (!sourceIndex.isValid()) {
+                        continue;
+                    }
+                    
+                    QString fileName = model->fileName(sourceIndex);
+                    
+                    // Skip parent directory (..)
+                    if (fileName == "..") {
+                        continue;
+                    }
+                    
+                    activePane->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+                    selectCount++;
+                }
+                
+                this->label->setText(QString("Selected %1 file(s)").arg(selectCount));
+                return;  // Don't call base class handler
             } else {
                 QMainWindow::keyPressEvent(event);
             }
@@ -2346,6 +2483,46 @@ bool FileMainWindow::eventFilter(QObject *obj, QEvent *event)
 
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        
+        // Handle Ctrl+A to select all files (excluding parent directory)
+        if (keyEvent->key() == Qt::Key_A && (keyEvent->modifiers() & Qt::ControlModifier)) {
+            if (obj == leftPane || obj == rightPane) {
+                QtFileIconView* pane = qobject_cast<QtFileIconView*>(obj);
+                if (pane) {
+                    QFileSystemModel* model = pane->fileSystemModel();
+                    QModelIndex rootIdx = pane->rootIndex();
+                    int rowCount = pane->model()->rowCount(rootIdx);
+                    
+                    pane->clearSelection();
+                    
+                    int selectCount = 0;
+                    for (int row = 0; row < rowCount; ++row) {
+                        QModelIndex index = pane->model()->index(row, 0, rootIdx);
+                        if (!index.isValid()) {
+                            continue;
+                        }
+                        
+                        QModelIndex sourceIndex = pane->mapToSource(index);
+                        if (!sourceIndex.isValid()) {
+                            continue;
+                        }
+                        
+                        QString fileName = model->fileName(sourceIndex);
+                        
+                        // Skip parent directory (..)
+                        if (fileName == "..") {
+                            continue;
+                        }
+                        
+                        pane->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+                        selectCount++;
+                    }
+                    
+                    this->label->setText(QString("Selected %1 file(s)").arg(selectCount));
+                    return true;  // Event handled, don't propagate
+                }
+            }
+        }
         
         // Handle Tab key to switch between panels
         if (keyEvent->key() == Qt::Key_Tab) {
@@ -2837,6 +3014,15 @@ void QtFileIconView::itemDoubleClicked(const QModelIndex &index)
         if (path.isEmpty()) {
             path = "/";
         }
+        
+        // Check read permissions before navigating
+        QFileInfo dirInfo(path);
+        if (!dirInfo.isReadable()) {
+            QMessageBox::warning(this, "Permission Denied", 
+                "You do not have permission to access:\n" + path);
+            return;
+        }
+        
         setDirectory(path);
     } else {
         // Open file

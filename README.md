@@ -318,6 +318,7 @@ sudo make uninstall
 - **F6**: Move selected files to opposite pane
 - **Shift+F6**: Rename selected file
 - **Ctrl+S**: Select files by pattern
+- **Ctrl+A**: Select all files
 - **F1**: About dialog (includes key bindings reference)
 - **F10**: Exit application
 
