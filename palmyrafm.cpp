@@ -181,25 +181,25 @@ void FileMainWindow::setup()
         if (path.isEmpty()) {
             leftPathEdit->setText(leftPaneCurrentDir);
         } else if (!dir.exists()) {
-            // Directory doesn't exist
-            QString originalStyle = leftPathEdit->styleSheet();
-            leftPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
-            statusBar()->showMessage("Directory does not exist: " + path, 3000);
-            
-            QTimer::singleShot(500, this, [this, originalStyle]() {
-                leftPathEdit->setStyleSheet(originalStyle);
-                leftPathEdit->setText(leftPaneCurrentDir);
-            });
+            // Directory doesn't exist - show error dialog
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText("Directory does not exist:");
+            msgBox.setInformativeText(path);
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.exec();
+            leftPathEdit->setText(leftPaneCurrentDir);
         } else if (!dirInfo.isReadable()) {
-            // Directory exists but no read permission
-            QString originalStyle = leftPathEdit->styleSheet();
-            leftPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
-            statusBar()->showMessage("Permission denied: " + path, 3000);
-            
-            QTimer::singleShot(500, this, [this, originalStyle]() {
-                leftPathEdit->setStyleSheet(originalStyle);
-                leftPathEdit->setText(leftPaneCurrentDir);
-            });
+            // Directory exists but no read permission - show error dialog
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText("Permission denied:");
+            msgBox.setInformativeText(path);
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.exec();
+            leftPathEdit->setText(leftPaneCurrentDir);
         } else {
             // Valid and readable directory
             leftPane->setDirectory(path);
@@ -220,25 +220,25 @@ void FileMainWindow::setup()
         if (path.isEmpty()) {
             rightPathEdit->setText(rightPaneCurrentDir);
         } else if (!dir.exists()) {
-            // Directory doesn't exist
-            QString originalStyle = rightPathEdit->styleSheet();
-            rightPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
-            statusBar()->showMessage("Directory does not exist: " + path, 3000);
-            
-            QTimer::singleShot(500, this, [this, originalStyle]() {
-                rightPathEdit->setStyleSheet(originalStyle);
-                rightPathEdit->setText(rightPaneCurrentDir);
-            });
+            // Directory doesn't exist - show error dialog
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText("Directory does not exist:");
+            msgBox.setInformativeText(path);
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.exec();
+            rightPathEdit->setText(rightPaneCurrentDir);
         } else if (!dirInfo.isReadable()) {
-            // Directory exists but no read permission
-            QString originalStyle = rightPathEdit->styleSheet();
-            rightPathEdit->setStyleSheet("QLineEdit { background-color: #ff0000; color: white; }");
-            statusBar()->showMessage("Permission denied: " + path, 3000);
-            
-            QTimer::singleShot(500, this, [this, originalStyle]() {
-                rightPathEdit->setStyleSheet(originalStyle);
-                rightPathEdit->setText(rightPaneCurrentDir);
-            });
+            // Directory exists but no read permission - show error dialog
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Error");
+            msgBox.setText("Permission denied:");
+            msgBox.setInformativeText(path);
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.exec();
+            rightPathEdit->setText(rightPaneCurrentDir);
         } else {
             // Valid and readable directory
             rightPane->setDirectory(path);
@@ -699,8 +699,7 @@ void FileMainWindow::cut()
         msgBox.setWindowTitle("Cut");
         msgBox.setText("No files selected!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -742,8 +741,7 @@ void FileMainWindow::copy()
         msgBox.setWindowTitle("Copy");
         msgBox.setText("No files selected!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -784,8 +782,7 @@ void FileMainWindow::paste()
         msgBox.setWindowTitle("Paste");
         msgBox.setText("No files to paste!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -852,12 +849,10 @@ void FileMainWindow::paste()
             delete progressDialog;
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Error");
-            msgBox.setText(QString("Failed to %1 %2")
-                          .arg(isCutOperation ? "move" : "copy")
-                          .arg(sourceInfo.fileName()));
+            msgBox.setText(QString("Failed to %1:").arg(isCutOperation ? "move" : "copy"));
+            msgBox.setInformativeText(sourceInfo.fileName());
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
             return;
         }
@@ -892,8 +887,7 @@ void FileMainWindow::pasteToActive()
         msgBox.setWindowTitle("Paste");
         msgBox.setText("No files to paste!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -958,12 +952,10 @@ void FileMainWindow::pasteToActive()
             delete progressDialog;
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Error");
-            msgBox.setText(QString("Failed to %1 %2")
-                          .arg(isCutOperation ? "move" : "copy")
-                          .arg(sourceInfo.fileName()));
+            msgBox.setText(QString("Failed to %1:").arg(isCutOperation ? "move" : "copy"));
+            msgBox.setInformativeText(sourceInfo.fileName());
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
             return;
         }
@@ -997,8 +989,7 @@ void FileMainWindow::copyToOpposite()
         msgBox.setWindowTitle("Copy");
         msgBox.setText("No files selected!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -1039,15 +1030,12 @@ void FileMainWindow::copyToOpposite()
     
     QMessageBox confirmBox(this);
     confirmBox.setWindowTitle("Confirm Copy");
-    confirmBox.setText(QString("Copy %1 file(s) to:\n%2").arg(filesToCopy.size()).arg(targetDir));
+    confirmBox.setText(QString("Copy %1 file(s) to:").arg(filesToCopy.size()));
+    confirmBox.setInformativeText(targetDir);
     confirmBox.setDetailedText(fileList);
     confirmBox.setIcon(QMessageBox::Question);
-    
-    QPushButton *yesButton = confirmBox.addButton(QMessageBox::Yes);
-    QPushButton *noButton = confirmBox.addButton(QMessageBox::No);
-    yesButton->setIcon(QIcon());  // Remove icon
-    noButton->setIcon(QIcon());   // Remove icon
-    confirmBox.setDefaultButton(yesButton);
+    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    confirmBox.setDefaultButton(QMessageBox::Yes);
     
     if (confirmBox.exec() != QMessageBox::Yes) {
         return;
@@ -1102,10 +1090,10 @@ void FileMainWindow::copyToOpposite()
             delete progressDialog;
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Error");
-            msgBox.setText(QString("Failed to copy %1").arg(sourceInfo.fileName()));
+            msgBox.setText("Failed to copy:");
+            msgBox.setInformativeText(sourceInfo.fileName());
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
             return;
         }
@@ -1131,8 +1119,7 @@ void FileMainWindow::moveToOpposite()
         msgBox.setWindowTitle("Move");
         msgBox.setText("No files selected!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -1173,15 +1160,12 @@ void FileMainWindow::moveToOpposite()
     
     QMessageBox confirmBox(this);
     confirmBox.setWindowTitle("Confirm Move");
-    confirmBox.setText(QString("Move %1 file(s) to:\n%2").arg(filesToMove.size()).arg(targetDir));
+    confirmBox.setText(QString("Move %1 file(s) to:").arg(filesToMove.size()));
+    confirmBox.setInformativeText(targetDir);
     confirmBox.setDetailedText(fileList);
     confirmBox.setIcon(QMessageBox::Question);
-    
-    QPushButton *yesButton = confirmBox.addButton(QMessageBox::Yes);
-    QPushButton *noButton = confirmBox.addButton(QMessageBox::No);
-    yesButton->setIcon(QIcon());  // Remove icon
-    noButton->setIcon(QIcon());   // Remove icon
-    confirmBox.setDefaultButton(yesButton);
+    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    confirmBox.setDefaultButton(QMessageBox::Yes);
     
     if (confirmBox.exec() != QMessageBox::Yes) {
         return;
@@ -1236,10 +1220,10 @@ void FileMainWindow::moveToOpposite()
             delete progressDialog;
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Error");
-            msgBox.setText(QString("Failed to move %1").arg(sourceInfo.fileName()));
+            msgBox.setText("Failed to move:");
+            msgBox.setInformativeText(sourceInfo.fileName());
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
             return;
         }
@@ -1266,8 +1250,7 @@ void FileMainWindow::rename()
         msgBox.setWindowTitle("Rename");
         msgBox.setText("No file selected!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -1285,8 +1268,7 @@ void FileMainWindow::rename()
         msgBox.setWindowTitle("Rename");
         msgBox.setText("Invalid selection!");
         msgBox.setIcon(QMessageBox::Warning);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -1302,8 +1284,7 @@ void FileMainWindow::rename()
         msgBox.setWindowTitle("Rename");
         msgBox.setText("Cannot rename parent directory!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -1364,8 +1345,7 @@ void FileMainWindow::rename()
             msgBox.setWindowTitle("Rename");
             msgBox.setText("File name cannot be empty!");
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
             return;
         }
@@ -1382,10 +1362,10 @@ void FileMainWindow::rename()
         if (QFile::exists(newPath)) {
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Rename");
-            msgBox.setText(QString("A file or folder named '%1' already exists!").arg(newName));
+            msgBox.setText("A file or folder with this name already exists:");
+            msgBox.setInformativeText(newName);
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
             return;
         }
@@ -1398,10 +1378,10 @@ void FileMainWindow::rename()
         } else {
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Rename");
-            msgBox.setText(QString("Failed to rename '%1'").arg(oldName));
+            msgBox.setText("Failed to rename:");
+            msgBox.setInformativeText(oldName);
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
         }
     }
@@ -1415,8 +1395,7 @@ void FileMainWindow::remove()
         msgBox.setWindowTitle("Delete");
         msgBox.setText("No files selected!");
         msgBox.setIcon(QMessageBox::Information);
-        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-        okButton->setIcon(QIcon());
+        msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.exec();
         return;
     }
@@ -1437,23 +1416,24 @@ void FileMainWindow::remove()
     
     // Build detailed file list
     QString fileList;
-    for (const QString &filePath : filesToDelete) {
-        QFileInfo info(filePath);
+    int displayCount = qMin(filesToDelete.size(), 10);
+    for (int i = 0; i < displayCount; ++i) {
+        QFileInfo info(filesToDelete[i]);
         fileList += info.fileName() + "\n";
+    }
+    if (filesToDelete.size() > 10) {
+        fileList += QString("... and %1 more").arg(filesToDelete.size() - 10);
     }
     
     // Confirmation dialog
     QMessageBox confirmBox(this);
     confirmBox.setWindowTitle("Confirm Delete");
     confirmBox.setText(QString("Are you sure you want to delete %1 file(s)?").arg(filesToDelete.size()));
+    confirmBox.setInformativeText("This action cannot be undone.");
     confirmBox.setDetailedText(fileList);
     confirmBox.setIcon(QMessageBox::Question);
-    
-    QPushButton *yesButton = confirmBox.addButton(QMessageBox::Yes);
-    QPushButton *noButton = confirmBox.addButton(QMessageBox::No);
-    yesButton->setIcon(QIcon());  // Remove icon
-    noButton->setIcon(QIcon());   // Remove icon
-    confirmBox.setDefaultButton(noButton);
+    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    confirmBox.setDefaultButton(QMessageBox::No);
     
     if (confirmBox.exec() != QMessageBox::Yes) {
         return;
@@ -1493,10 +1473,10 @@ void FileMainWindow::remove()
             delete progressDialog;
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Error");
-            msgBox.setText(QString("Failed to delete %1").arg(fileInfo.fileName()));
+            msgBox.setText("Failed to delete:");
+            msgBox.setInformativeText(fileInfo.fileName());
             msgBox.setIcon(QMessageBox::Warning);
-            QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
-            okButton->setIcon(QIcon());
+            msgBox.setStandardButtons(QMessageBox::Ok);
             msgBox.exec();
             return;
         }
@@ -3025,9 +3005,15 @@ void QtFileIconView::itemDoubleClicked(const QModelIndex &index)
         
         setDirectory(path);
     } else {
-        // Open file
+        // Open file with default application
         QString filePath = fileModel->filePath(sourceIndex);
+#ifdef Q_OS_MACOS
+        QProcess::startDetached("open", QStringList() << filePath);
+#elif defined(Q_OS_WIN)
+        QProcess::startDetached("cmd", QStringList() << "/c" << "start" << "" << filePath);
+#else
         QProcess::startDetached("xdg-open", QStringList() << filePath);
+#endif
     }
 }
 
